@@ -3,7 +3,6 @@ use chumsky::prelude::*;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Comment(String);
 
-#[must_use]
 pub fn comment() -> impl Parser<char, Comment, Error = Simple<char>> {
     just(";")
         .ignore_then(text::newline().not().repeated())

@@ -11,7 +11,6 @@ pub enum Format {
     Rules,
 }
 
-#[must_use]
 pub fn format() -> impl Parser<char, Format, Error = Simple<char>> {
     let journal = just("journal").map(|_| Format::Journal);
     let timeclock = just("timeclock").map(|_| Format::Timeclock);
