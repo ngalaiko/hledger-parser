@@ -17,6 +17,3 @@ correctness = "deny"
 complexity = "deny"
 style = "deny"
 pedantic = "deny"
-
-missing_errors_doc = "allow"
-missing_panics_doc = "allow"
