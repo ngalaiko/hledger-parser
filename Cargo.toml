@@ -1,0 +1,22 @@
+[package]
+name = "hledger-parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ariadne = "0.4.1"
+chumsky = "0.9.3"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "deny"
+perf = "deny"
+correctness = "deny"
+complexity = "deny"
+style = "deny"
+pedantic = "deny"
+
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
