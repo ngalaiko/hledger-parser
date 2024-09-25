@@ -1,6 +1,10 @@
+mod decimal_mark;
+mod include;
+mod payee;
+
 use chumsky::prelude::*;
 
-use crate::{
+use self::{
     decimal_mark::{decimal_mark, DecimalMark},
     include::{include, Include},
     payee::{payee, Payee},

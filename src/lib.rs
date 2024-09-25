@@ -1,6 +1,2 @@
-pub mod comment;
-pub mod decimal_mark;
+mod components;
 pub mod directive;
-pub mod format;
-pub mod include;
-pub mod payee;
