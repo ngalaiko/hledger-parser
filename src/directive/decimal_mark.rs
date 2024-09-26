@@ -5,7 +5,7 @@ pub struct DecimalMark(char);
 
 pub fn decimal_mark() -> impl Parser<char, DecimalMark, Error = Simple<char>> {
     just::<_, _, Simple<char>>("decimal-mark")
-        .ignore_then(just(" ").repeated())
+        .ignore_then(just(" ").repeated().at_least(1))
         .ignore_then(one_of(".,"))
         .then_ignore(just(" ").repeated())
         .then_ignore(text::newline())

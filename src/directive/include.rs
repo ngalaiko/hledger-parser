@@ -14,7 +14,7 @@ pub struct Include {
 #[must_use]
 pub fn include() -> impl Parser<char, Include, Error = Simple<char>> {
     just("include")
-        .ignore_then(one_of(" \t").repeated())
+        .ignore_then(one_of(" \t").repeated().at_least(1))
         .ignore_then(format().then_ignore(just(":")).or_not())
         .then(text::newline().or(just(";").ignored()).not().repeated())
         .then_ignore(comment().ignored().or(text::newline()))

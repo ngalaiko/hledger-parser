@@ -7,11 +7,16 @@ impl AccountNamePart {
     pub fn from_str(s: &str) -> Self {
         Self(s.to_string())
     }
+
+    pub fn to_str(&self) -> &str {
+        &self.0
+    }
 }
 
 pub fn account_name_part() -> impl Parser<char, AccountNamePart, Error = Simple<char>> {
     text::newline()
-        .or(just(":").ignored())
+        .or(just(":").ignored()) // forbidden, because it separates account parts
+        .or(just("  ;").ignored()) // forbidden, because it separates inline account comment
         .not()
         .repeated()
         .collect::<String>()
@@ -25,7 +30,7 @@ mod tests {
     #[test]
     fn ok_simple() {
         let result = account_name_part().then_ignore(end()).parse("account");
-        assert_eq!(result, Ok(AccountNamePart("account".to_string())));
+        assert_eq!(result, Ok(AccountNamePart::from_str("account")));
     }
 
     #[test]
@@ -35,7 +40,7 @@ mod tests {
             .parse("with\"quotes and spaces'");
         assert_eq!(
             result,
-            Ok(AccountNamePart("with\"quotes and spaces'".to_string()))
+            Ok(AccountNamePart::from_str("with\"quotes and spaces'"))
         );
     }
 

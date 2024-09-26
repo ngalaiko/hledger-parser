@@ -8,7 +8,7 @@ pub struct Payee(String);
 #[must_use]
 pub fn payee() -> impl Parser<char, Payee, Error = Simple<char>> {
     just::<_, _, Simple<char>>("payee")
-        .ignore_then(one_of(" \t").repeated())
+        .ignore_then(one_of(" \t").repeated().at_least(1))
         .ignore_then(text::newline().or(just(";").ignored()).not().repeated())
         .then_ignore(comment().ignored().or(text::newline()))
         .collect::<String>()

@@ -5,8 +5,27 @@ use super::account_name_part::{account_name_part, AccountNamePart};
 #[derive(Debug, Clone, PartialEq)]
 pub struct AccountName(Vec<AccountNamePart>);
 
+impl AccountName {
+    pub fn from_parts(parts: &[AccountNamePart]) -> Self {
+        Self(parts.to_vec())
+    }
+}
+
 pub fn account_name() -> impl Parser<char, AccountName, Error = Simple<char>> {
-    account_name_part().separated_by(just(":")).map(AccountName)
+    account_name_part()
+        .then_ignore(just(":").ignored())
+        .repeated()
+        .then(account_name_part())
+        .map(|(parts, last_part)| {
+            AccountName(
+                parts
+                    .into_iter()
+                    .chain(std::iter::once(AccountNamePart::from_str(
+                        last_part.to_str().trim_end(),
+                    )))
+                    .collect(),
+            )
+        })
 }
 
 #[cfg(test)]
