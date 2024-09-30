@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::components::comment::comment;
+use crate::component::comment::comment;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Payee(String);

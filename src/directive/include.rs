@@ -1,8 +1,8 @@
 use chumsky::prelude::*;
 
-use crate::{
-    components::comment::comment,
-    components::format::{format, Format},
+use crate::component::{
+    comment::comment,
+    format::{format, Format},
 };
 
 #[derive(Clone, Debug, PartialEq)]

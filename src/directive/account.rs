@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::components::{
+use crate::component::{
     account_name::{account_name, AccountName},
     comment::comment,
 };
@@ -8,7 +8,6 @@ use crate::components::{
 #[derive(Debug, Clone, PartialEq)]
 pub struct Account {
     pub account_name: AccountName,
-    // TODO: parse tags
 }
 
 pub fn account() -> impl Parser<char, Account, Error = Simple<char>> {
@@ -27,7 +26,7 @@ pub fn account() -> impl Parser<char, Account, Error = Simple<char>> {
 
 #[cfg(test)]
 mod tests {
-    use crate::components::account_name_part::AccountNamePart;
+    use crate::component::account_name_part::AccountNamePart;
 
     use super::*;
 

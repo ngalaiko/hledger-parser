@@ -1,2 +1,2 @@
-mod components;
+mod component;
 pub mod directive;
