@@ -7,7 +7,9 @@ pub fn commodity() -> impl Parser<char, Commodity, Error = Simple<char>> {
     let letter = filter(|c: &char| c.is_alphabetic());
     let digit = filter(|c: &char| c.is_ascii_digit());
     let space = one_of(" \t");
+    let symbol = one_of::<_, _, Simple<char>>("$¢€£ƒ₣₧₱₨₹₽₺¥");
 
+    let symbol = symbol.repeated().exactly(1).collect().map(Commodity);
     let simple = letter.repeated().collect().map(Commodity);
     let quoted = letter
         .or(digit)
@@ -17,12 +19,18 @@ pub fn commodity() -> impl Parser<char, Commodity, Error = Simple<char>> {
         .collect()
         .map(Commodity);
 
-    quoted.or(simple)
+    symbol.or(quoted).or(simple)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    pub fn symbol() {
+        let result = commodity().then_ignore(end()).parse("$");
+        assert_eq!(result, Ok(Commodity(String::from("$"))));
+    }
 
     #[test]
     pub fn simple() {
