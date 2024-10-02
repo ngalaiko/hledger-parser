@@ -6,6 +6,8 @@ mod payee;
 
 use chumsky::prelude::*;
 
+use crate::utils::whitespace;
+
 use self::{
     account::{account, Account},
     commodity::{commodity, Commodity},
@@ -37,5 +39,9 @@ pub fn directive() -> impl Parser<char, Directive, Error = Simple<char>> {
 
 #[must_use]
 pub fn directives() -> impl Parser<char, Vec<Directive>, Error = Simple<char>> {
-    directive().repeated()
+    directive()
+        .map(Some)
+        .or(whitespace().repeated().map(|_| None))
+        .separated_by(text::newline())
+        .map(|directives| directives.into_iter().flatten().collect())
 }
