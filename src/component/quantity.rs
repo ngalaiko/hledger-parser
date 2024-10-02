@@ -93,13 +93,13 @@ mod tests {
         let result2 = quantity().then_ignore(end()).parse("123,");
         assert_eq!(result1, result2);
         assert!(result2.is_ok());
-        // assert_eq!(
-        //     result2,
-        //     Ok(Quantity {
-        //         mantissa: 123,
-        //         places: 0,
-        //     })
-        // );
+        assert_eq!(
+            result2,
+            Ok(Quantity {
+                mantissa: 123,
+                places: 0,
+            })
+        );
     }
 
     #[test]
@@ -115,6 +115,12 @@ mod tests {
                 places: 4,
             })
         );
+    }
+
+    #[test]
+    fn decimals_invalid() {
+        let result = quantity().then_ignore(end()).parse("1..23");
+        assert!(result.is_err());
     }
 
     #[test]
@@ -159,6 +165,12 @@ mod tests {
                 places: 0,
             })
         );
+    }
+
+    #[test]
+    fn thousands_invalid() {
+        let result = quantity().then_ignore(end()).parse("12.34.678");
+        assert!(result.is_err());
     }
 
     #[test]
