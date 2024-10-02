@@ -12,7 +12,7 @@ impl Commodity {
 pub fn commodity() -> impl Parser<char, Commodity, Error = Simple<char>> {
     let letter = filter(|c: &char| c.is_alphabetic());
     let digit = filter(|c: &char| c.is_ascii_digit());
-    let space = one_of(" \t");
+    let space = one_of(" \t\u{a0}");
     let symbol = one_of::<_, _, Simple<char>>("$¢€£ƒ₣₧₱₨₹₽₺¥");
 
     let symbol = symbol.repeated().exactly(1).collect().map(Commodity);

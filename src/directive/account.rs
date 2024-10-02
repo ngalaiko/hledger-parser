@@ -1,8 +1,11 @@
 use chumsky::prelude::*;
 
-use crate::component::{
-    account_name::{account_name, AccountName},
-    comment::comment,
+use crate::{
+    component::{
+        account_name::{account_name, AccountName},
+        comment::comment,
+    },
+    utils::whitespace,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -12,11 +15,11 @@ pub struct Account {
 
 pub fn account() -> impl Parser<char, Account, Error = Simple<char>> {
     just("account")
-        .ignore_then(one_of(" \t").repeated().at_least(1))
+        .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(account_name())
         .then_ignore(
             // The two-space requirement for same-line account comments is because ; is allowed in account names.
-            just("  ").ignore_then(comment().ignored()).or(one_of(" \t")
+            just("  ").ignore_then(comment().ignored()).or(whitespace()
                 .repeated()
                 .ignored()
                 .then_ignore(text::newline())),
