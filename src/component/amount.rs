@@ -4,7 +4,7 @@ use crate::utils::whitespace;
 
 use super::{
     commodity::{commodity, Commodity},
-    quantity::{quantity, Quantity},
+    quantity::{quantity, Options as QuantityOptions, Quantity},
 };
 
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -14,10 +14,16 @@ pub struct Amount {
     pub commodity: Commodity,
 }
 
-pub fn amount() -> impl Parser<char, Amount, Error = Simple<char>> {
+#[derive(Debug, Default)]
+pub struct Options {
+    // if true, will require decimal quantity
+    pub quantity: QuantityOptions,
+}
+
+pub fn amount(options: &Options) -> impl Parser<char, Amount, Error = Simple<char>> {
     let sign_quantity_commodity = one_of("-+")
         .then_ignore(whitespace().repeated())
-        .then(quantity())
+        .then(quantity(&options.quantity))
         .then_ignore(whitespace().repeated())
         .then(commodity())
         .map(|((sign, quantity), commodity)| Amount {
@@ -25,7 +31,7 @@ pub fn amount() -> impl Parser<char, Amount, Error = Simple<char>> {
             commodity,
             is_negative: sign == '-',
         });
-    let quantity_sign_commodity = quantity()
+    let quantity_sign_commodity = quantity(&options.quantity)
         .then_ignore(whitespace().repeated())
         .then(one_of("-+"))
         .then_ignore(whitespace().repeated())
@@ -39,7 +45,7 @@ pub fn amount() -> impl Parser<char, Amount, Error = Simple<char>> {
         .then_ignore(whitespace().repeated())
         .then(commodity())
         .then_ignore(whitespace().repeated())
-        .then(quantity())
+        .then(quantity(&options.quantity))
         .map(|((sign, commodity), quantity)| Amount {
             quantity,
             commodity,
@@ -49,13 +55,13 @@ pub fn amount() -> impl Parser<char, Amount, Error = Simple<char>> {
         .then_ignore(whitespace().repeated())
         .then(one_of("-+"))
         .then_ignore(whitespace().repeated())
-        .then(quantity())
+        .then(quantity(&options.quantity))
         .map(|((commodity, sign), quantity)| Amount {
             quantity,
             commodity,
             is_negative: sign == '-',
         });
-    let quantity_commodity = quantity()
+    let quantity_commodity = quantity(&options.quantity)
         .then_ignore(whitespace().repeated())
         .then(commodity())
         .map(|(quantity, commodity)| Amount {
@@ -65,13 +71,13 @@ pub fn amount() -> impl Parser<char, Amount, Error = Simple<char>> {
         });
     let commodity_quantity = commodity()
         .then_ignore(whitespace().repeated())
-        .then(quantity())
+        .then(quantity(&options.quantity))
         .map(|(commodity, quantity)| Amount {
             quantity,
             commodity,
             ..Amount::default()
         });
-    let just_quantity = quantity().map(|quantity| Amount {
+    let just_quantity = quantity(&options.quantity).map(|quantity| Amount {
         quantity,
         ..Amount::default()
     });
@@ -90,7 +96,7 @@ mod tests {
 
     #[test]
     fn quantity_no_commodity() {
-        let result = amount().then_ignore(end()).parse("1");
+        let result = amount(&Options::default()).then_ignore(end()).parse("1");
         assert_eq!(
             result,
             Ok(Amount {
@@ -128,7 +134,7 @@ mod tests {
                 },
             ),
         ] {
-            let result = amount().then_ignore(end()).parse(input);
+            let result = amount(&Options::default()).then_ignore(end()).parse(input);
             assert_eq!(result, Ok(expected), "{input}");
         }
     }
@@ -177,7 +183,7 @@ mod tests {
                 },
             ),
         ] {
-            let result = amount().then_ignore(end()).parse(input);
+            let result = amount(&Options::default()).then_ignore(end()).parse(input);
             assert_eq!(result, Ok(expected), "{input}");
         }
     }
