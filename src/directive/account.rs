@@ -1,11 +1,8 @@
 use chumsky::prelude::*;
 
 use crate::{
-    component::{
-        account_name::{account_name, AccountName},
-        comment::comment,
-    },
-    utils::whitespace,
+    component::account_name::{account_name, AccountName},
+    utils::{end_of_line_prefixed, whitespace},
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -18,11 +15,7 @@ pub fn account() -> impl Parser<char, Account, Error = Simple<char>> {
         .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(account_name())
         .then_ignore(
-            // The two-space requirement for same-line account comments is because ; is allowed in account names.
-            just("  ").ignore_then(comment().ignored()).or(whitespace()
-                .repeated()
-                .ignored()
-                .then_ignore(text::newline())),
+            end_of_line_prefixed(2), // The two-space requirement for same-line account comments is because ; is allowed in account names.
         )
         .map(|account_name| Account { account_name })
 }
@@ -35,9 +28,7 @@ mod tests {
 
     #[test]
     fn ok_simple() {
-        let result = account()
-            .then_ignore(end())
-            .parse("account one:two:three\n");
+        let result = account().then_ignore(end()).parse("account one:two:three");
         assert_eq!(
             result,
             Ok(Account {
@@ -54,7 +45,7 @@ mod tests {
     fn ok_with_padding() {
         let result = account()
             .then_ignore(end())
-            .parse("account     one:two:three   \n");
+            .parse("account     one:two:three   ");
         assert_eq!(
             result,
             Ok(Account {
@@ -71,7 +62,7 @@ mod tests {
     fn ok_comment_merged() {
         let result = account()
             .then_ignore(end())
-            .parse("account     one:two:three ; comment \n");
+            .parse("account     one:two:three ; comment ");
         assert_eq!(
             result,
             Ok(Account {
@@ -88,7 +79,7 @@ mod tests {
     fn ok_with_comment() {
         let result = account()
             .then_ignore(end())
-            .parse("account     one:two:three   ; comment \n");
+            .parse("account     one:two:three   ; comment ");
         assert_eq!(
             result,
             Ok(Account {
@@ -105,7 +96,7 @@ mod tests {
     fn err() {
         let result = account()
             .then_ignore(end())
-            .parse("acount     one:two:three   ; comment \n");
+            .parse("acount     one:two:three   ; comment ");
         assert!(result.is_err());
     }
 }

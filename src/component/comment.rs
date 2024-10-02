@@ -6,7 +6,6 @@ pub struct Comment(String);
 pub fn comment() -> impl Parser<char, Comment, Error = Simple<char>> {
     just(";")
         .ignore_then(text::newline().not().repeated())
-        .then_ignore(text::newline())
         .collect::<String>()
         .map(|comment| Comment(comment.trim().to_string()))
 }
@@ -17,7 +16,7 @@ mod tests {
 
     #[test]
     fn ok() {
-        let result = comment().then_ignore(end()).parse("; a comment\n");
+        let result = comment().then_ignore(end()).parse("; a comment");
         assert_eq!(result, Ok(Comment("a comment".to_string())));
     }
 

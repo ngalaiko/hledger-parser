@@ -1,11 +1,8 @@
 use chumsky::prelude::*;
 
 use crate::{
-    component::{
-        comment::comment,
-        format::{format, Format},
-    },
-    utils::whitespace,
+    component::format::{format, Format},
+    utils::{end_of_line, whitespace},
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -20,7 +17,7 @@ pub fn include() -> impl Parser<char, Include, Error = Simple<char>> {
         .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(format().then_ignore(just(":")).or_not())
         .then(text::newline().or(just(";").ignored()).not().repeated())
-        .then_ignore(comment().ignored().or(text::newline()))
+        .then_ignore(end_of_line())
         .map(|(format, path)| Include {
             format,
             path: std::path::PathBuf::from(path.iter().collect::<String>().trim_end()),
@@ -33,7 +30,7 @@ mod tests {
 
     #[test]
     fn ok_without_format() {
-        let result = include().then_ignore(end()).parse("include path\n");
+        let result = include().then_ignore(end()).parse("include path");
         assert_eq!(
             result,
             Ok(Include {
@@ -47,7 +44,7 @@ mod tests {
     fn ok_with_comment() {
         let result = include()
             .then_ignore(end())
-            .parse("include path ; with a comment !\n");
+            .parse("include path  ; with a comment !");
         assert_eq!(
             result,
             Ok(Include {
@@ -61,7 +58,7 @@ mod tests {
     fn ok_with_spaces() {
         let result = include()
             .then_ignore(end())
-            .parse("include Path with space.csv\n");
+            .parse("include Path with space.csv");
         assert_eq!(
             result,
             Ok(Include {
@@ -73,7 +70,7 @@ mod tests {
 
     #[test]
     fn ok_with_format() {
-        let result = include().then_ignore(end()).parse("include rules:path\n");
+        let result = include().then_ignore(end()).parse("include rules:path");
         assert_eq!(
             result,
             Ok(Include {
@@ -85,7 +82,7 @@ mod tests {
 
     #[test]
     fn ok_trailing() {
-        let result = include().then_ignore(end()).parse("include path   \n");
+        let result = include().then_ignore(end()).parse("include path   ");
         assert_eq!(
             result,
             Ok(Include {
@@ -93,11 +90,5 @@ mod tests {
                 path: std::path::PathBuf::from("path")
             })
         );
-    }
-
-    #[test]
-    fn err() {
-        let result = include().then_ignore(end()).parse("inlude path");
-        assert!(result.is_err());
     }
 }

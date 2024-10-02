@@ -3,11 +3,10 @@ use chumsky::prelude::*;
 use crate::{
     component::{
         amount::{self, amount, Amount},
-        comment::comment,
         commodity::{commodity as parse_commodity, Commodity as ParsedCommodity},
         quantity,
     },
-    utils::whitespace,
+    utils::{end_of_line, whitespace},
 };
 
 #[derive(Clone, Debug, PartialEq)]
@@ -28,16 +27,7 @@ pub fn commodity() -> impl Parser<char, Commodity, Error = Simple<char>> {
             .map(Commodity::Amount)
             .or(parse_commodity().map(Commodity::Commodity)),
         )
-        .then_ignore(
-            whitespace()
-                .repeated()
-                .at_least(1)
-                .ignore_then(comment().ignored())
-                .or(whitespace()
-                    .repeated()
-                    .ignored()
-                    .then_ignore(text::newline())),
-        )
+        .then_ignore(end_of_line())
 }
 
 #[cfg(test)]
@@ -46,7 +36,7 @@ mod tests {
 
     #[test]
     fn with_symbol() {
-        let result = commodity().then_ignore(end()).parse("commodity $1000.00\n");
+        let result = commodity().then_ignore(end()).parse("commodity $1000.00");
         assert_eq!(
             result,
             Ok(Commodity::Amount(Amount {
@@ -64,7 +54,7 @@ mod tests {
     fn no_symbol() {
         let result = commodity()
             .then_ignore(end())
-            .parse("commodity 1,000,000.0000\n");
+            .parse("commodity 1,000,000.0000");
         assert_eq!(
             result,
             Ok(Commodity::Amount(Amount {
@@ -82,7 +72,7 @@ mod tests {
     fn comment() {
         let result = commodity()
             .then_ignore(end())
-            .parse("commodity 1. USD ; with comment\n");
+            .parse("commodity 1. USD ; with comment");
         assert_eq!(
             result,
             Ok(Commodity::Amount(Amount {
@@ -100,7 +90,7 @@ mod tests {
     fn just_currency() {
         let result = commodity()
             .then_ignore(end())
-            .parse("commodity \"AAAA 2023\"\n");
+            .parse("commodity \"AAAA 2023\"  ");
         assert_eq!(
             result,
             Ok(Commodity::Commodity(ParsedCommodity::from_str("AAAA 2023")))
