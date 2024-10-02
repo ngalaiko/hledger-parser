@@ -1,9 +1,18 @@
 use chumsky::prelude::*;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Default, Debug, PartialEq)]
 pub struct Quantity {
     pub mantissa: u64,
     pub places: u64,
+}
+
+impl Quantity {
+    pub fn from_u64(number: u64) -> Self {
+        Self {
+            mantissa: number,
+            places: 0,
+        }
+    }
 }
 
 pub fn quantity() -> impl Parser<char, Quantity, Error = Simple<char>> {

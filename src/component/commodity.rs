@@ -1,7 +1,13 @@
 use chumsky::prelude::*;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Commodity(String);
+
+impl Commodity {
+    pub fn from_str(s: &str) -> Self {
+        Self(s.to_string())
+    }
+}
 
 pub fn commodity() -> impl Parser<char, Commodity, Error = Simple<char>> {
     let letter = filter(|c: &char| c.is_alphabetic());
