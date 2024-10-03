@@ -94,4 +94,30 @@ mod tests {
             })
         );
     }
+
+    #[test]
+    fn comment() {
+        let result = price()
+            .then_ignore(end())
+            .parse("P 2009-01-01 € $1.35  ; with comment");
+        assert_eq!(
+            result,
+            Ok(Price {
+                date: Date {
+                    year: Some(2009),
+                    month: 1,
+                    day: 1,
+                },
+                commodity: Commodity::from_str("€"),
+                amount: Amount {
+                    quantity: Quantity {
+                        mantissa: 135,
+                        places: 2
+                    },
+                    commodity: Commodity::from_str("$"),
+                    ..Amount::default()
+                },
+            })
+        );
+    }
 }

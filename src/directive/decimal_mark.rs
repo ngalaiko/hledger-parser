@@ -36,6 +36,14 @@ mod tests {
     }
 
     #[test]
+    fn ok_comment() {
+        let result = decimal_mark()
+            .then_ignore(end())
+            .parse("decimal-mark .  ; test");
+        assert_eq!(result, Ok(DecimalMark('.')));
+    }
+
+    #[test]
     fn err_format() {
         let result = decimal_mark().then_ignore(end()).parse("decimal-mark ");
         assert!(result.is_err());
