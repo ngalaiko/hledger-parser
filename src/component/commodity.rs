@@ -15,7 +15,7 @@ pub fn commodity() -> impl Parser<char, Commodity, Error = Simple<char>> {
     let space = one_of(" \t\u{a0}");
     let symbol = one_of::<_, _, Simple<char>>("$¢€£ƒ₣₧₱₨₹₽₺¥");
 
-    let symbol = symbol.repeated().exactly(1).collect().map(Commodity);
+    let symbol = symbol.map(|char| Commodity(char.to_string()));
     let simple = letter.repeated().collect().map(Commodity);
     let quoted = letter
         .or(digit)

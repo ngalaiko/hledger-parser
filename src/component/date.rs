@@ -6,12 +6,13 @@ use chumsky::{
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Date {
-    year: Option<u16>,
-    month: u16,
-    day: u16,
+    pub year: Option<u16>,
+    pub month: u16,
+    pub day: u16,
 }
 
-pub fn simple() -> impl Parser<char, Date, Error = Simple<char>> {
+#[allow(clippy::module_name_repetitions)]
+pub fn simple_date() -> impl Parser<char, Date, Error = Simple<char>> {
     let digit = filter(move |c: &char| c.is_ascii_digit());
     let year = digit
         .repeated()
@@ -83,7 +84,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn simple_date() {
+    fn simple() {
         for (input, expected) in [
             (
                 "2010-01-31",
@@ -126,7 +127,7 @@ mod tests {
                 },
             ),
         ] {
-            let result = simple().then_ignore(end()).parse(input);
+            let result = simple_date().then_ignore(end()).parse(input);
             assert_eq!(result, Ok(expected), "{input}");
         }
     }
