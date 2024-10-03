@@ -49,32 +49,15 @@ pub fn simple_date() -> impl Parser<char, Date, Error = Simple<char>> {
             }
             s
         });
-    let with_year = |separator: char| {
+    let date = |separator: char| {
         year.then_ignore(just(separator))
+            .or_not()
             .then(month)
             .then_ignore(just(separator))
             .then(day)
-            .map(|((year, month), day)| Date {
-                year: Some(year),
-                month,
-                day,
-            })
+            .map(|((year, month), day)| Date { year, month, day })
     };
-    let with_year = with_year('/').or(with_year('.')).or(with_year('-'));
-    let without_year = |separator: char| {
-        month
-            .then_ignore(just(separator))
-            .then(day)
-            .map(|(month, day)| Date {
-                year: None,
-                month,
-                day,
-            })
-    };
-    let without_year = without_year('/')
-        .or(without_year('.'))
-        .or(without_year('-'));
-    with_year.or(without_year)
+    date('/').or(date('.')).or(date('-'))
 }
 
 #[cfg(test)]
