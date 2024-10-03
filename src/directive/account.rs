@@ -22,7 +22,7 @@ pub fn account() -> impl Parser<char, Account, Error = Simple<char>> {
 
 #[cfg(test)]
 mod tests {
-    use crate::component::account_name_part::AccountNamePart;
+    use crate::component::account_name::part::Part;
 
     use super::*;
 
@@ -33,9 +33,9 @@ mod tests {
             result,
             Ok(Account {
                 account_name: AccountName::from_parts(&[
-                    AccountNamePart::from_str("one"),
-                    AccountNamePart::from_str("two"),
-                    AccountNamePart::from_str("three"),
+                    Part::from_str("one"),
+                    Part::from_str("two"),
+                    Part::from_str("three"),
                 ])
             })
         );
@@ -50,9 +50,9 @@ mod tests {
             result,
             Ok(Account {
                 account_name: AccountName::from_parts(&[
-                    AccountNamePart::from_str("one"),
-                    AccountNamePart::from_str("two"),
-                    AccountNamePart::from_str("three"),
+                    Part::from_str("one"),
+                    Part::from_str("two"),
+                    Part::from_str("three"),
                 ])
             })
         );
@@ -67,9 +67,9 @@ mod tests {
             result,
             Ok(Account {
                 account_name: AccountName::from_parts(&[
-                    AccountNamePart::from_str("one"),
-                    AccountNamePart::from_str("two"),
-                    AccountNamePart::from_str("three ; comment"),
+                    Part::from_str("one"),
+                    Part::from_str("two"),
+                    Part::from_str("three ; comment"),
                 ])
             })
         );
@@ -84,9 +84,9 @@ mod tests {
             result,
             Ok(Account {
                 account_name: AccountName::from_parts(&[
-                    AccountNamePart::from_str("one"),
-                    AccountNamePart::from_str("two"),
-                    AccountNamePart::from_str("three"),
+                    Part::from_str("one"),
+                    Part::from_str("two"),
+                    Part::from_str("three"),
                 ])
             })
         );
