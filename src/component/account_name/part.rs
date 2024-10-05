@@ -16,7 +16,7 @@ impl Part {
 pub fn part() -> impl Parser<char, Part, Error = Simple<char>> {
     text::newline()
         .or(just(":").ignored()) // forbidden, because it separates account parts
-        .or(just("  ;").ignored()) // forbidden, because it separates inline account comment
+        .or(just("  ").ignored()) // forbidden, because it separates inline account comment
         .not()
         .repeated()
         .collect::<String>()
@@ -35,13 +35,8 @@ mod tests {
 
     #[test]
     fn ok_complex() {
-        let result = part()
-            .then_ignore(end())
-            .parse("with\"quotes and spaces'");
-        assert_eq!(
-            result,
-            Ok(Part::from_str("with\"quotes and spaces'"))
-        );
+        let result = part().then_ignore(end()).parse("with\"quotes and spaces'");
+        assert_eq!(result, Ok(Part::from_str("with\"quotes and spaces'")));
     }
 
     #[test]
