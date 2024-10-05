@@ -3,6 +3,7 @@ mod commodity;
 mod decimal_mark;
 mod include;
 mod payee;
+mod posting;
 mod price;
 
 use chumsky::prelude::*;
