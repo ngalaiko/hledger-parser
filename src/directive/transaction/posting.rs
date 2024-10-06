@@ -1,10 +1,14 @@
 use chumsky::prelude::*;
 
+mod assertion;
+
 use crate::component::account_name::{account_name, AccountName};
 use crate::component::amount::{amount, Amount};
 use crate::component::price::{price, Price};
 use crate::component::status::{status, Status};
 use crate::utils::{end_of_line, whitespace};
+
+use self::assertion::{assertion, Assertion};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Posting {
@@ -12,7 +16,7 @@ pub struct Posting {
     pub account_name: AccountName,
     pub amount: Option<Amount>,
     pub price: Option<Price>,
-    pub assertion: Option<Amount>,
+    pub assertion: Option<Assertion>,
 }
 
 #[must_use]
@@ -22,11 +26,7 @@ pub fn posting() -> impl Parser<char, Posting, Error = Simple<char>> {
         .at_least(2)
         .ignore_then(amount(&crate::component::amount::Options::default()));
     let posting_price = whitespace().repeated().ignore_then(price());
-    let posting_assertion = whitespace()
-        .repeated()
-        .then_ignore(just("="))
-        .then_ignore(whitespace().repeated())
-        .ignore_then(amount(&crate::component::amount::Options::default()));
+    let posting_assertion = whitespace().repeated().ignore_then(assertion());
     whitespace()
         .repeated()
         .at_least(1)
@@ -188,10 +188,14 @@ mod tests {
                     quantity: Quantity::from_u64(1),
                     commodity: Commodity::from_str("USD"),
                 })),
-                assertion: Some(Amount {
-                    is_negative: false,
-                    quantity: Quantity::from_u64(1),
-                    commodity: Commodity::from_str("USD"),
+                assertion: Some(Assertion {
+                    amount: Amount {
+                        is_negative: false,
+                        quantity: Quantity::from_u64(1),
+                        commodity: Commodity::from_str("USD"),
+                    },
+                    is_subaccount_inclusive: false,
+                    is_strict: false,
                 }),
             })
         );
@@ -201,7 +205,7 @@ mod tests {
     fn with_assertion() {
         let result = posting()
             .then_ignore(end())
-            .parse(" assets:bank:checking  1 USD=1 USD");
+            .parse(" assets:bank:checking  1 USD == 1 USD");
         assert_eq!(
             result,
             Ok(Posting {
@@ -217,10 +221,14 @@ mod tests {
                     commodity: Commodity::from_str("USD"),
                 }),
                 price: None,
-                assertion: Some(Amount {
-                    is_negative: false,
-                    quantity: Quantity::from_u64(1),
-                    commodity: Commodity::from_str("USD"),
+                assertion: Some(Assertion {
+                    amount: Amount {
+                        is_negative: false,
+                        quantity: Quantity::from_u64(1),
+                        commodity: Commodity::from_str("USD"),
+                    },
+                    is_subaccount_inclusive: false,
+                    is_strict: true,
                 }),
             })
         );
