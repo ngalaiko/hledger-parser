@@ -3,8 +3,8 @@ mod commodity;
 mod decimal_mark;
 mod include;
 mod payee;
-mod posting;
 mod price;
+mod transaction;
 
 use chumsky::prelude::*;
 
@@ -17,29 +17,32 @@ use self::{
     include::{include, Include},
     payee::{payee, Payee},
     price::{price, Price},
+    transaction::{transaction, Transaction},
 };
 
 pub type Span = std::ops::Range<usize>;
 
 #[derive(Clone, Debug)]
 pub enum Directive {
-    Include(Include),
-    DecimalMark(DecimalMark),
-    Payee(Payee),
     Account(Account),
     Commodity(Commodity),
+    DecimalMark(DecimalMark),
+    Include(Include),
+    Payee(Payee),
     Price(Price),
+    Transaction(Transaction),
 }
 
 #[must_use]
 pub fn directive() -> impl Parser<char, Directive, Error = Simple<char>> {
-    include()
-        .map(Directive::Include)
-        .or(decimal_mark().map(Directive::DecimalMark))
-        .or(payee().map(Directive::Payee))
-        .or(account().map(Directive::Account))
+    account()
+        .map(Directive::Account)
         .or(commodity().map(Directive::Commodity))
+        .or(decimal_mark().map(Directive::DecimalMark))
+        .or(include().map(Directive::Include))
+        .or(payee().map(Directive::Payee))
         .or(price().map(Directive::Price))
+        .or(transaction().map(Directive::Transaction))
 }
 
 #[must_use]

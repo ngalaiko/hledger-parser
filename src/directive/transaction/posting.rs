@@ -2,6 +2,7 @@ use chumsky::prelude::*;
 
 use crate::component::account_name::{account_name, AccountName};
 use crate::component::amount::{amount, Amount};
+use crate::component::price::{price, Price};
 use crate::component::status::{status, Status};
 use crate::utils::{end_of_line, whitespace};
 
@@ -10,6 +11,7 @@ pub struct Posting {
     pub status: Option<Status>,
     pub account_name: AccountName,
     pub amount: Option<Amount>,
+    pub price: Option<Price>,
 }
 
 #[must_use]
@@ -26,11 +28,19 @@ pub fn posting() -> impl Parser<char, Posting, Error = Simple<char>> {
                 .ignore_then(amount(&crate::component::amount::Options::default()))
                 .or_not(),
         )
+        .then(
+            whitespace()
+                .repeated()
+                .at_least(1)
+                .ignore_then(price())
+                .or_not(),
+        )
         .then_ignore(end_of_line())
-        .map(|((status, account_name), amount)| Posting {
+        .map(|(((status, account_name), amount), price)| Posting {
             status,
             account_name,
             amount,
+            price,
         })
 }
 
@@ -58,7 +68,8 @@ mod tests {
                     is_negative: false,
                     quantity: Quantity::from_u64(1),
                     commodity: Commodity::from_str("$"),
-                })
+                }),
+                price: None,
             })
         );
     }
@@ -78,6 +89,7 @@ mod tests {
                     Part::from_str("checking"),
                 ]),
                 amount: None,
+                price: None,
             })
         );
     }
@@ -100,7 +112,8 @@ mod tests {
                     is_negative: false,
                     quantity: Quantity::from_u64(1),
                     commodity: Commodity::from_str("$"),
-                })
+                }),
+                price: None,
             })
         );
     }
@@ -120,6 +133,7 @@ mod tests {
                     Part::from_str("checking"),
                 ]),
                 amount: None,
+                price: None,
             })
         );
     }
@@ -137,6 +151,35 @@ mod tests {
                     Part::from_str("checking"),
                 ]),
                 amount: None,
+                price: None,
+            })
+        );
+    }
+
+    #[test]
+    fn with_price() {
+        let result = posting()
+            .then_ignore(end())
+            .parse(" assets:bank:checking  1 USD @ 1 EUR");
+        assert_eq!(
+            result,
+            Ok(Posting {
+                status: None,
+                account_name: AccountName::from_parts(&[
+                    Part::from_str("assets"),
+                    Part::from_str("bank"),
+                    Part::from_str("checking"),
+                ]),
+                amount: Some(Amount {
+                    is_negative: false,
+                    quantity: Quantity::from_u64(1),
+                    commodity: Commodity::from_str("USD"),
+                }),
+                price: Some(Price::Unit(Amount {
+                    is_negative: false,
+                    quantity: Quantity::from_u64(1),
+                    commodity: Commodity::from_str("EUR"),
+                })),
             })
         );
     }
@@ -156,6 +199,7 @@ mod tests {
                     Part::from_str("checking $1"),
                 ]),
                 amount: None,
+                price: None,
             })
         );
     }
