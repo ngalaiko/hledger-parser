@@ -15,7 +15,7 @@ pub fn price() -> impl Parser<char, Price, Error = Simple<char>> {
         .repeated()
         .at_least(1)
         .at_most(2)
-        .then_ignore(whitespace().repeated().at_least(1))
+        .then_ignore(whitespace().repeated())
         .then(amount(&Options::default()))
         .map(|(price_type, price)| {
             if price_type.len() == 1 {

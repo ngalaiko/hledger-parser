@@ -12,36 +12,39 @@ pub struct Posting {
     pub account_name: AccountName,
     pub amount: Option<Amount>,
     pub price: Option<Price>,
+    pub assertion: Option<Amount>,
 }
 
 #[must_use]
 pub fn posting() -> impl Parser<char, Posting, Error = Simple<char>> {
+    let posting_amount = whitespace()
+        .repeated()
+        .at_least(2)
+        .ignore_then(amount(&crate::component::amount::Options::default()));
+    let posting_price = whitespace().repeated().ignore_then(price());
+    let posting_assertion = whitespace()
+        .repeated()
+        .then_ignore(just("="))
+        .then_ignore(whitespace().repeated())
+        .ignore_then(amount(&crate::component::amount::Options::default()));
     whitespace()
         .repeated()
         .at_least(1)
         .ignore_then(status().then_ignore(whitespace()).or_not())
         .then(account_name())
-        .then(
-            whitespace()
-                .repeated()
-                .at_least(2)
-                .ignore_then(amount(&crate::component::amount::Options::default()))
-                .or_not(),
-        )
-        .then(
-            whitespace()
-                .repeated()
-                .at_least(1)
-                .ignore_then(price())
-                .or_not(),
-        )
+        .then(posting_amount.or_not())
+        .then(posting_price.or_not())
+        .then(posting_assertion.or_not())
         .then_ignore(end_of_line())
-        .map(|(((status, account_name), amount), price)| Posting {
-            status,
-            account_name,
-            amount,
-            price,
-        })
+        .map(
+            |((((status, account_name), amount), price), assertion)| Posting {
+                status,
+                account_name,
+                amount,
+                price,
+                assertion,
+            },
+        )
 }
 
 #[cfg(test)]
@@ -70,6 +73,7 @@ mod tests {
                     commodity: Commodity::from_str("$"),
                 }),
                 price: None,
+                assertion: None,
             })
         );
     }
@@ -90,6 +94,7 @@ mod tests {
                 ]),
                 amount: None,
                 price: None,
+                assertion: None,
             })
         );
     }
@@ -114,6 +119,7 @@ mod tests {
                     commodity: Commodity::from_str("$"),
                 }),
                 price: None,
+                assertion: None,
             })
         );
     }
@@ -134,6 +140,7 @@ mod tests {
                 ]),
                 amount: None,
                 price: None,
+                assertion: None,
             })
         );
     }
@@ -152,6 +159,69 @@ mod tests {
                 ]),
                 amount: None,
                 price: None,
+                assertion: None,
+            })
+        );
+    }
+
+    #[test]
+    fn with_price_assertion() {
+        let result = posting()
+            .then_ignore(end())
+            .parse(" assets:bank:checking  1 EUR@@1 USD=1 USD");
+        assert_eq!(
+            result,
+            Ok(Posting {
+                status: None,
+                account_name: AccountName::from_parts(&[
+                    Part::from_str("assets"),
+                    Part::from_str("bank"),
+                    Part::from_str("checking"),
+                ]),
+                amount: Some(Amount {
+                    is_negative: false,
+                    quantity: Quantity::from_u64(1),
+                    commodity: Commodity::from_str("EUR"),
+                }),
+                price: Some(Price::Total(Amount {
+                    is_negative: false,
+                    quantity: Quantity::from_u64(1),
+                    commodity: Commodity::from_str("USD"),
+                })),
+                assertion: Some(Amount {
+                    is_negative: false,
+                    quantity: Quantity::from_u64(1),
+                    commodity: Commodity::from_str("USD"),
+                }),
+            })
+        );
+    }
+
+    #[test]
+    fn with_assertion() {
+        let result = posting()
+            .then_ignore(end())
+            .parse(" assets:bank:checking  1 USD=1 USD");
+        assert_eq!(
+            result,
+            Ok(Posting {
+                status: None,
+                account_name: AccountName::from_parts(&[
+                    Part::from_str("assets"),
+                    Part::from_str("bank"),
+                    Part::from_str("checking"),
+                ]),
+                amount: Some(Amount {
+                    is_negative: false,
+                    quantity: Quantity::from_u64(1),
+                    commodity: Commodity::from_str("USD"),
+                }),
+                price: None,
+                assertion: Some(Amount {
+                    is_negative: false,
+                    quantity: Quantity::from_u64(1),
+                    commodity: Commodity::from_str("USD"),
+                }),
             })
         );
     }
@@ -180,6 +250,7 @@ mod tests {
                     quantity: Quantity::from_u64(1),
                     commodity: Commodity::from_str("EUR"),
                 })),
+                assertion: None,
             })
         );
     }
@@ -200,6 +271,7 @@ mod tests {
                 ]),
                 amount: None,
                 price: None,
+                assertion: None,
             })
         );
     }
