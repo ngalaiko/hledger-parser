@@ -2,7 +2,9 @@ use chumsky::prelude::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Status {
+    // !
     Pending,
+    // *
     Cleared,
 }
 
