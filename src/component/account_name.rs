@@ -1,33 +1,30 @@
-pub mod part;
-
 use chumsky::prelude::*;
 
-use self::part::{part, Part};
-
 #[derive(Debug, Clone, PartialEq)]
-pub struct AccountName(Vec<Part>);
+pub struct AccountName(Vec<String>);
 
 impl AccountName {
-    pub fn from_parts(parts: &[Part]) -> Self {
+    pub fn from_strs(parts: &[String]) -> Self {
         Self(parts.to_vec())
     }
 }
 
 pub fn account_name() -> impl Parser<char, AccountName, Error = Simple<char>> {
-    part()
-        .then_ignore(just(":").ignored())
+    let part = text::newline()
+        .or(just(":").ignored()) // forbidden, because it separates account parts
+        .or(just("  ").ignored()) // forbidden, because it separates inline account comment
+        .not()
         .repeated()
-        .then(part())
-        .map(|(parts, last_part)| {
-            AccountName(
-                parts
-                    .into_iter()
-                    .chain(std::iter::once(Part::from_str(
-                        last_part.to_str().trim_end(),
-                    )))
-                    .collect(),
-            )
-        })
+        .collect::<String>();
+    part.separated_by(just(":")).at_least(1).map(|parts| {
+        AccountName::from_strs(
+            &parts
+                .iter()
+                .map(|s| s.trim())
+                .map(std::string::ToString::to_string)
+                .collect::<Vec<String>>(),
+        )
+    })
 }
 
 #[cfg(test)]
@@ -37,7 +34,7 @@ mod tests {
     #[test]
     fn ok_simple() {
         let result = account_name().then_ignore(end()).parse("account");
-        assert_eq!(result, Ok(AccountName(vec![Part::from_str("account")])));
+        assert_eq!(result, Ok(AccountName(vec![String::from("account")])));
     }
 
     #[test]
@@ -48,9 +45,9 @@ mod tests {
         assert_eq!(
             result,
             Ok(AccountName(vec![
-                Part::from_str("account"),
-                Part::from_str("second level"),
-                Part::from_str("third\"level"),
+                String::from("account"),
+                String::from("second level"),
+                String::from("third\"level"),
             ]))
         );
     }

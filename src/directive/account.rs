@@ -22,8 +22,6 @@ pub fn account() -> impl Parser<char, Account, Error = Simple<char>> {
 
 #[cfg(test)]
 mod tests {
-    use crate::component::account_name::part::Part;
-
     use super::*;
 
     #[test]
@@ -32,10 +30,10 @@ mod tests {
         assert_eq!(
             result,
             Ok(Account {
-                account_name: AccountName::from_parts(&[
-                    Part::from_str("one"),
-                    Part::from_str("two"),
-                    Part::from_str("three"),
+                account_name: AccountName::from_strs(&[
+                    String::from("one"),
+                    String::from("two"),
+                    String::from("three"),
                 ])
             })
         );
@@ -49,10 +47,10 @@ mod tests {
         assert_eq!(
             result,
             Ok(Account {
-                account_name: AccountName::from_parts(&[
-                    Part::from_str("one"),
-                    Part::from_str("two"),
-                    Part::from_str("three"),
+                account_name: AccountName::from_strs(&[
+                    String::from("one"),
+                    String::from("two"),
+                    String::from("three"),
                 ])
             })
         );
@@ -66,10 +64,10 @@ mod tests {
         assert_eq!(
             result,
             Ok(Account {
-                account_name: AccountName::from_parts(&[
-                    Part::from_str("one"),
-                    Part::from_str("two"),
-                    Part::from_str("three ; comment"),
+                account_name: AccountName::from_strs(&[
+                    String::from("one"),
+                    String::from("two"),
+                    String::from("three ; comment"),
                 ])
             })
         );
@@ -83,10 +81,10 @@ mod tests {
         assert_eq!(
             result,
             Ok(Account {
-                account_name: AccountName::from_parts(&[
-                    Part::from_str("one"),
-                    Part::from_str("two"),
-                    Part::from_str("three"),
+                account_name: AccountName::from_strs(&[
+                    String::from("one"),
+                    String::from("two"),
+                    String::from("three"),
                 ])
             })
         );

@@ -76,10 +76,7 @@ pub fn transaction() -> impl Parser<char, Transaction, Error = Simple<char>> {
 #[cfg(test)]
 mod tests {
     use crate::component::{
-        account_name::{part::Part, AccountName},
-        amount::Amount,
-        commodity::Commodity,
-        quantity::Quantity,
+        account_name::AccountName, amount::Amount, commodity::Commodity, quantity::Quantity,
     };
 
     use super::*;
@@ -106,10 +103,10 @@ mod tests {
                 postings: vec![
                     Posting {
                         status: None,
-                        account_name: AccountName::from_parts(&[
-                            Part::from_str("assets"),
-                            Part::from_str("bank"),
-                            Part::from_str("checking"),
+                        account_name: AccountName::from_strs(&[
+                            String::from("assets"),
+                            String::from("bank"),
+                            String::from("checking"),
                         ]),
                         amount: Some(Amount {
                             is_negative: false,
@@ -121,9 +118,9 @@ mod tests {
                     },
                     Posting {
                         status: None,
-                        account_name: AccountName::from_parts(&[
-                            Part::from_str("income"),
-                            Part::from_str("salary"),
+                        account_name: AccountName::from_strs(&[
+                            String::from("income"),
+                            String::from("salary"),
                         ]),
                         amount: None,
                         price: None,
@@ -156,10 +153,10 @@ mod tests {
                 postings: vec![
                     Posting {
                         status: None,
-                        account_name: AccountName::from_parts(&[
-                            Part::from_str("assets"),
-                            Part::from_str("bank"),
-                            Part::from_str("checking"),
+                        account_name: AccountName::from_strs(&[
+                            String::from("assets"),
+                            String::from("bank"),
+                            String::from("checking"),
                         ]),
                         amount: Some(Amount {
                             is_negative: false,
@@ -171,9 +168,9 @@ mod tests {
                     },
                     Posting {
                         status: None,
-                        account_name: AccountName::from_parts(&[
-                            Part::from_str("income"),
-                            Part::from_str("salary"),
+                        account_name: AccountName::from_strs(&[
+                            String::from("income"),
+                            String::from("salary"),
                         ]),
                         amount: None,
                         price: None,
