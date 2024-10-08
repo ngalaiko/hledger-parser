@@ -1,16 +1,15 @@
 use chumsky::prelude::*;
 
-use crate::{
-    component::{
-        date::{simple_date, Date},
-        status::{status, Status},
-    },
-    utils::{end_of_line, whitespace},
-};
+mod posting;
+mod status;
 
 use self::posting::{posting, Posting};
+use self::status::{status, Status};
 
-mod posting;
+use crate::{
+    component::date::{simple_date, Date},
+    utils::{end_of_line, whitespace},
+};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Transaction {

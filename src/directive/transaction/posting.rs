@@ -2,10 +2,10 @@ use chumsky::prelude::*;
 
 mod assertion;
 
+use super::status::{status, Status};
 use crate::component::account_name::{account_name, AccountName};
 use crate::component::amount::{amount, Amount};
 use crate::component::price::{price, Price};
-use crate::component::status::{status, Status};
 use crate::utils::{end_of_line, whitespace};
 
 use self::assertion::{assertion, Assertion};

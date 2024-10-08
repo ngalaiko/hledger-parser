@@ -1,9 +1,9 @@
 use chumsky::prelude::*;
 
-use crate::{
-    component::format::{format, Format},
-    utils::{end_of_line, whitespace},
-};
+mod format;
+
+use self::format::{format, Format};
+use crate::utils::{end_of_line, whitespace};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Include {
