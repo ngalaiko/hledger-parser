@@ -57,10 +57,6 @@ pub fn transaction() -> impl Parser<char, Transaction, Error = Simple<char>> {
     header
         .then_ignore(text::newline())
         .then(posting().separated_by(text::newline()).at_least(2))
-        .map(|a| {
-            dbg!(&a);
-            a
-        })
         .map(
             |(((((date, status), code), payee), description), postings)| Transaction {
                 date,
@@ -84,8 +80,10 @@ mod tests {
     #[test]
     fn full() {
         let result = transaction().then_ignore(end()).parse(
-            "2008/01/01 * (123) salary | january
-    assets:bank:checking   $1
+            "2008/01/01 * (123) salary | january ; transaction comment
+                                                 ; same comment second line
+    assets:bank:checking   $1  ; posting comment
+                               ; same comment second line
     income:salary  ",
         );
         assert_eq!(
@@ -99,7 +97,7 @@ mod tests {
                 code: Some(String::from("123")),
                 status: Some(Status::Cleared),
                 payee: String::from("salary"),
-                description: Some(String::from("january")),
+                description: Some(String::from("january ")),
                 postings: vec![
                     Posting {
                         status: None,

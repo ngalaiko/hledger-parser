@@ -127,9 +127,10 @@ mod tests {
 
     #[test]
     fn with_comment() {
-        let result = posting()
-            .then_ignore(end())
-            .parse(" assets:bank:checking  ; some comment");
+        let result = posting().then_ignore(end()).parse(
+            " assets:bank:checking  ; some comment
+                                    ; continuation of the same comment",
+        );
         assert_eq!(
             result,
             Ok(Posting {
