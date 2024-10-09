@@ -7,6 +7,10 @@ edition = "2021"
 ariadne = "0.4.1"
 chumsky = "0.9.3"
 
+[[example]]
+name = "cheatsheet"
+path = "examples/cheatsheet.rs"
+
 [lints.rust]
 unsafe_code = "forbid"
 
