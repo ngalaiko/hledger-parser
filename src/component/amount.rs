@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::utils::whitespace;
+use crate::component::whitespace::whitespace;
 
 use super::{
     commodity::{commodity, Commodity},

@@ -1,8 +1,7 @@
 use chumsky::prelude::*;
 
-use crate::utils::whitespace;
-
 use crate::component::amount::{amount, Amount, Options};
+use crate::component::whitespace::whitespace;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Price {

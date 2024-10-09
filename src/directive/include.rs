@@ -3,7 +3,8 @@ use chumsky::prelude::*;
 mod format;
 
 use self::format::{format, Format};
-use crate::utils::{end_of_line, whitespace};
+use crate::component::whitespace::whitespace;
+use crate::utils::end_of_line;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Include {

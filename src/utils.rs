@@ -1,10 +1,7 @@
 use chumsky::prelude::*;
 
 use crate::component::comment::comment;
-
-pub fn whitespace() -> impl Parser<char, (), Error = Simple<char>> {
-    one_of(" \t\u{a0}").ignored()
-}
+use crate::component::whitespace::whitespace;
 
 pub fn end_of_line() -> impl Parser<char, (), Error = Simple<char>> {
     end_of_line_prefixed(0)

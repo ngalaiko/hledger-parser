@@ -8,7 +8,7 @@ mod transaction;
 
 use chumsky::prelude::*;
 
-use crate::utils::whitespace;
+use crate::component::whitespace::whitespace;
 
 use self::{
     account::{account, Account},

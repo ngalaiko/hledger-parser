@@ -6,3 +6,4 @@ pub mod date;
 pub mod price;
 pub mod quantity;
 pub mod time;
+pub mod whitespace;

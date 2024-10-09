@@ -1,9 +1,8 @@
 use chumsky::prelude::*;
 
-use crate::{
-    component::account_name::{account_name, AccountName},
-    utils::{end_of_line_prefixed, whitespace},
-};
+use crate::component::account_name::{account_name, AccountName};
+use crate::component::whitespace::whitespace;
+use crate::utils::end_of_line_prefixed;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Account {

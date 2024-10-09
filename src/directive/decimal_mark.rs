@@ -1,6 +1,7 @@
 use chumsky::prelude::*;
 
-use crate::utils::{end_of_line, whitespace};
+use crate::component::whitespace::whitespace;
+use crate::utils::end_of_line;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DecimalMark(char);

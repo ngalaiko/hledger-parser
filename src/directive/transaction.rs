@@ -6,9 +6,10 @@ mod status;
 use self::posting::{posting, Posting};
 use self::status::{status, Status};
 
+use crate::component::whitespace::whitespace;
 use crate::{
     component::date::{simple_date, Date},
-    utils::{end_of_line, whitespace},
+    utils::end_of_line,
 };
 
 #[derive(Clone, Debug, PartialEq)]

@@ -6,7 +6,8 @@ use super::status::{status, Status};
 use crate::component::account_name::{account_name, AccountName};
 use crate::component::amount::{amount, Amount};
 use crate::component::price::{price, Price};
-use crate::utils::{end_of_line, whitespace};
+use crate::component::whitespace::whitespace;
+use crate::utils::end_of_line;
 
 use self::assertion::{assertion, Assertion};
 
