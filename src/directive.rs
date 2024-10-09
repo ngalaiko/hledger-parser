@@ -8,7 +8,10 @@ mod transaction;
 
 use chumsky::prelude::*;
 
-use crate::component::whitespace::whitespace;
+use crate::component::{
+    comment::{block, inline, line},
+    whitespace::whitespace,
+};
 
 use self::{
     account::{account, Account},
@@ -19,8 +22,6 @@ use self::{
     price::{price, Price},
     transaction::{transaction, Transaction},
 };
-
-pub type Span = std::ops::Range<usize>;
 
 #[derive(Clone, Debug)]
 pub enum Directive {
@@ -49,6 +50,9 @@ pub fn directive() -> impl Parser<char, Directive, Error = Simple<char>> {
 pub fn directives() -> impl Parser<char, Vec<Directive>, Error = Simple<char>> {
     directive()
         .map(Some)
+        .or(inline().map(|_| None))
+        .or(line().map(|_| None))
+        .or(block().map(|_| None))
         .or(whitespace().repeated().map(|_| None))
         .separated_by(text::newline())
         .map(|directives| directives.into_iter().flatten().collect())
