@@ -4,6 +4,7 @@ mod decimal_mark;
 mod include;
 mod payee;
 mod price;
+mod tag;
 mod transaction;
 
 use chumsky::prelude::*;
@@ -20,6 +21,7 @@ use self::{
     include::{include, Include},
     payee::{payee, Payee},
     price::{price, Price},
+    tag::{tag, Tag},
     transaction::{transaction, Transaction},
 };
 
@@ -31,6 +33,7 @@ pub enum Directive {
     Include(Include),
     Payee(Payee),
     Price(Price),
+    Tag(Tag),
     Transaction(Transaction),
 }
 
@@ -43,6 +46,7 @@ pub fn directive() -> impl Parser<char, Directive, Error = Simple<char>> {
         .or(include().map(Directive::Include))
         .or(payee().map(Directive::Payee))
         .or(price().map(Directive::Price))
+        .or(tag().map(Directive::Tag))
         .or(transaction().map(Directive::Transaction))
 }
 
