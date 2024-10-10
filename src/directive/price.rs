@@ -5,7 +5,7 @@ use crate::{
     component::{
         amount::{amount, Amount, Options},
         commodity::{commodity, Commodity},
-        date::{simple_date, Date},
+        date::{date, Date},
         time::time,
     },
     utils::end_of_line,
@@ -22,7 +22,7 @@ pub struct Price {
 pub fn price() -> impl Parser<char, Price, Error = Simple<char>> {
     just("P")
         .ignore_then(whitespace().repeated().at_least(1))
-        .ignore_then(simple_date())
+        .ignore_then(date())
         .then_ignore(whitespace().repeated().at_least(1))
         .then_ignore(time().then(whitespace().repeated().at_least(1)).or_not())
         .then(commodity())

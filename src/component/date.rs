@@ -12,7 +12,7 @@ pub struct Date {
 }
 
 #[allow(clippy::module_name_repetitions)]
-pub fn simple_date() -> impl Parser<char, Date, Error = Simple<char>> {
+pub fn date() -> impl Parser<char, Date, Error = Simple<char>> {
     let digit = filter(move |c: &char| c.is_ascii_digit());
     let year = digit
         .repeated()
@@ -110,7 +110,7 @@ mod tests {
                 },
             ),
         ] {
-            let result = simple_date().then_ignore(end()).parse(input);
+            let result = date().then_ignore(end()).parse(input);
             assert_eq!(result, Ok(expected), "{input}");
         }
     }

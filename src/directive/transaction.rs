@@ -8,7 +8,7 @@ use self::status::{status, Status};
 
 use crate::component::whitespace::whitespace;
 use crate::{
-    component::date::{simple_date, Date},
+    component::date::{date, Date},
     utils::end_of_line,
 };
 
@@ -47,7 +47,7 @@ pub fn transaction() -> impl Parser<char, Transaction, Error = Simple<char>> {
             .collect::<String>(),
     );
 
-    let header = simple_date()
+    let header = date()
         .then(whitespace().repeated().ignore_then(status()).or_not())
         .then(whitespace().repeated().ignore_then(code).or_not())
         .then(whitespace().repeated().ignore_then(payee))
