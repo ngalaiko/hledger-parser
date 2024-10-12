@@ -15,30 +15,7 @@ impl Quantity {
     }
 }
 
-#[derive(Debug, Default)]
-pub struct Options {
-    pub require_decimal: bool,
-}
-
-pub fn quantity(options: &Options) -> Box<dyn Parser<char, Quantity, Error = Simple<char>>> {
-    if options.require_decimal {
-        Box::new(require_decimal())
-    } else {
-        Box::new(optional_decimal())
-    }
-}
-
-// require_decimal is just like quantity, but requires decimal part.
-fn require_decimal() -> impl Parser<char, Quantity, Error = Simple<char>> {
-    let integer_trailing = digits().then_ignore(one_of(",.")).map(|integer| Quantity {
-        mantissa: integer.parse().unwrap(),
-        places: 0,
-    });
-
-    thousands_and_decimals().or(decimal()).or(integer_trailing)
-}
-
-fn optional_decimal() -> impl Parser<char, Quantity, Error = Simple<char>> {
+pub fn quantity<'a>() -> impl Parser<'a, &'a str, Quantity, extra::Err<Rich<'a, char>>> {
     let fraction = fraction(',').or(fraction('.')).map(|fraction| Quantity {
         mantissa: fraction.parse().unwrap(),
         places: fraction.len().try_into().unwrap(),
@@ -69,15 +46,15 @@ fn optional_decimal() -> impl Parser<char, Quantity, Error = Simple<char>> {
         .or(digits)
 }
 
-fn digit() -> impl Parser<char, char, Error = Simple<char>> {
-    filter::<_, _, Simple<char>>(|c: &char| c.is_ascii_digit())
+fn digit<'a>() -> impl Parser<'a, &'a str, char, extra::Err<Rich<'a, char>>> {
+    any().filter(|c: &char| c.is_ascii_digit())
 }
 
-fn digits() -> impl Parser<char, String, Error = Simple<char>> {
+fn digits<'a>() -> impl Parser<'a, &'a str, String, extra::Err<Rich<'a, char>>> {
     digit().repeated().at_least(1).collect::<String>()
 }
 
-fn one_to_three_digits() -> impl Parser<char, String, Error = Simple<char>> {
+fn one_to_three_digits<'a>() -> impl Parser<'a, &'a str, String, extra::Err<Rich<'a, char>>> {
     digit()
         .repeated()
         .at_least(1)
@@ -85,19 +62,19 @@ fn one_to_three_digits() -> impl Parser<char, String, Error = Simple<char>> {
         .collect::<String>()
 }
 
-fn three_digits() -> impl Parser<char, String, Error = Simple<char>> {
+fn three_digits<'a>() -> impl Parser<'a, &'a str, String, extra::Err<Rich<'a, char>>> {
     digit().repeated().exactly(3).collect::<String>()
 }
 
-fn none_or_more_digits() -> impl Parser<char, String, Error = Simple<char>> {
+fn none_or_more_digits<'a>() -> impl Parser<'a, &'a str, String, extra::Err<Rich<'a, char>>> {
     digit().repeated().collect::<String>()
 }
 
-fn fraction(mark: char) -> impl Parser<char, String, Error = Simple<char>> {
+fn fraction<'a>(mark: char) -> impl Parser<'a, &'a str, String, extra::Err<Rich<'a, char>>> {
     just(mark).ignore_then(none_or_more_digits())
 }
 
-fn thousands_and_decimals() -> impl Parser<char, Quantity, Error = Simple<char>> {
+fn thousands_and_decimals<'a>() -> impl Parser<'a, &'a str, Quantity, extra::Err<Rich<'a, char>>> {
     thousands(',')
         .then(fraction('.'))
         .or(thousands('.').then(fraction(',')))
@@ -109,16 +86,19 @@ fn thousands_and_decimals() -> impl Parser<char, Quantity, Error = Simple<char>>
         })
 }
 
-fn thousands(mark: char) -> impl Parser<char, (String, Vec<String>), Error = Simple<char>> {
+fn thousands<'a>(
+    mark: char,
+) -> impl Parser<'a, &'a str, (String, Vec<String>), extra::Err<Rich<'a, char>>> {
     one_to_three_digits().then(
         three_digits()
             .separated_by(just(mark))
             .allow_leading()
-            .at_least(1),
+            .at_least(1)
+            .collect(),
     )
 }
 
-fn decimal() -> impl Parser<char, Quantity, Error = Simple<char>> {
+fn decimal<'a>() -> impl Parser<'a, &'a str, Quantity, extra::Err<Rich<'a, char>>> {
     let decimal = |mark: char| digits().then(fraction(mark));
     decimal(',')
         .or(decimal('.'))
@@ -137,7 +117,7 @@ mod tests {
 
         #[test]
         fn integer() {
-            let result = optional_decimal().then_ignore(end()).parse("123");
+            let result = quantity().then_ignore(end()).parse("123").into_result();
             assert_eq!(
                 result,
                 Ok(Quantity {
@@ -149,8 +129,8 @@ mod tests {
 
         #[test]
         fn integer_trailing() {
-            let result1 = optional_decimal().then_ignore(end()).parse("123.");
-            let result2 = optional_decimal().then_ignore(end()).parse("123,");
+            let result1 = quantity().then_ignore(end()).parse("123.").into_result();
+            let result2 = quantity().then_ignore(end()).parse("123,").into_result();
             assert_eq!(result1, result2);
             assert_eq!(
                 result2,
@@ -163,8 +143,8 @@ mod tests {
 
         #[test]
         fn decimals_leading() {
-            let result1 = optional_decimal().then_ignore(end()).parse(".0123");
-            let result2 = optional_decimal().then_ignore(end()).parse(",0123");
+            let result1 = quantity().then_ignore(end()).parse(".0123").into_result();
+            let result2 = quantity().then_ignore(end()).parse(",0123").into_result();
             assert_eq!(result1, result2);
             assert_eq!(
                 result2,
@@ -177,14 +157,14 @@ mod tests {
 
         #[test]
         fn decimals_invalid() {
-            let result = optional_decimal().then_ignore(end()).parse("1..23");
+            let result = quantity().then_ignore(end()).parse("1..23").into_result();
             assert!(result.is_err());
         }
 
         #[test]
         fn decimals() {
-            let result1 = optional_decimal().then_ignore(end()).parse("1.23");
-            let result2 = optional_decimal().then_ignore(end()).parse("1,23");
+            let result1 = quantity().then_ignore(end()).parse("1.23").into_result();
+            let result2 = quantity().then_ignore(end()).parse("1,23").into_result();
             assert_eq!(result1, result2);
             assert_eq!(
                 result2,
@@ -197,8 +177,8 @@ mod tests {
 
         #[test]
         fn decimals_like_thousands() {
-            let result1 = optional_decimal().then_ignore(end()).parse("1.234");
-            let result2 = optional_decimal().then_ignore(end()).parse("1,234");
+            let result1 = quantity().then_ignore(end()).parse("1.234").into_result();
+            let result2 = quantity().then_ignore(end()).parse("1,234").into_result();
             assert_eq!(result1, result2);
             assert_eq!(
                 result2,
@@ -211,8 +191,14 @@ mod tests {
 
         #[test]
         fn thousands_trailing() {
-            let result1 = optional_decimal().then_ignore(end()).parse("12,345,678.");
-            let result2 = optional_decimal().then_ignore(end()).parse("12.345.678,");
+            let result1 = quantity()
+                .then_ignore(end())
+                .parse("12,345,678.")
+                .into_result();
+            let result2 = quantity()
+                .then_ignore(end())
+                .parse("12.345.678,")
+                .into_result();
             assert_eq!(result1, result2);
             assert_eq!(
                 result2,
@@ -225,14 +211,23 @@ mod tests {
 
         #[test]
         fn thousands_invalid() {
-            let result = optional_decimal().then_ignore(end()).parse("12.34.678");
+            let result = quantity()
+                .then_ignore(end())
+                .parse("12.34.678")
+                .into_result();
             assert!(result.is_err());
         }
 
         #[test]
         fn thousands() {
-            let result1 = optional_decimal().then_ignore(end()).parse("12,345,678");
-            let result2 = optional_decimal().then_ignore(end()).parse("12.345.678");
+            let result1 = quantity()
+                .then_ignore(end())
+                .parse("12,345,678")
+                .into_result();
+            let result2 = quantity()
+                .then_ignore(end())
+                .parse("12.345.678")
+                .into_result();
             assert_eq!(result1, result2);
             assert_eq!(
                 result2,
@@ -245,116 +240,14 @@ mod tests {
 
         #[test]
         fn thousands_and_decimals() {
-            let result1 = optional_decimal().then_ignore(end()).parse("12,345.678");
-            let result2 = optional_decimal().then_ignore(end()).parse("12.345,678");
-            assert_eq!(result1, result2);
-            assert_eq!(
-                result2,
-                Ok(Quantity {
-                    mantissa: 12_345_678,
-                    places: 3,
-                })
-            );
-        }
-    }
-
-    mod require_decimal {
-        use super::*;
-
-        #[test]
-        fn integer() {
-            let result = require_decimal().then_ignore(end()).parse("123");
-            assert!(result.is_err());
-        }
-
-        #[test]
-        fn integer_trailing() {
-            let result1 = require_decimal().then_ignore(end()).parse("123.");
-            let result2 = require_decimal().then_ignore(end()).parse("123,");
-            assert_eq!(result1, result2);
-            assert_eq!(
-                result2,
-                Ok(Quantity {
-                    mantissa: 123,
-                    places: 0,
-                })
-            );
-        }
-
-        #[test]
-        fn decimals_leading() {
-            let result1 = require_decimal().then_ignore(end()).parse(".0123");
-            let result2 = require_decimal().then_ignore(end()).parse(",0123");
-            assert!(result1.is_err());
-            assert!(result2.is_err());
-        }
-
-        #[test]
-        fn decimals_invalid() {
-            let result = require_decimal().then_ignore(end()).parse("1..23");
-            assert!(result.is_err());
-        }
-
-        #[test]
-        fn decimals() {
-            let result1 = require_decimal().then_ignore(end()).parse("1.23");
-            let result2 = require_decimal().then_ignore(end()).parse("1,23");
-            assert_eq!(result1, result2);
-            assert_eq!(
-                result2,
-                Ok(Quantity {
-                    mantissa: 123,
-                    places: 2,
-                })
-            );
-        }
-
-        #[test]
-        fn decimals_like_thousands() {
-            let result1 = require_decimal().then_ignore(end()).parse("1.234");
-            let result2 = require_decimal().then_ignore(end()).parse("1,234");
-            assert_eq!(result1, result2);
-            assert_eq!(
-                result2,
-                Ok(Quantity {
-                    mantissa: 1234,
-                    places: 3,
-                })
-            );
-        }
-
-        #[test]
-        fn thousands_trailing() {
-            let result1 = require_decimal().then_ignore(end()).parse("12,345,678.");
-            let result2 = require_decimal().then_ignore(end()).parse("12.345.678,");
-            assert_eq!(result1, result2);
-            assert_eq!(
-                result2,
-                Ok(Quantity {
-                    mantissa: 12_345_678,
-                    places: 0,
-                })
-            );
-        }
-
-        #[test]
-        fn thousands_invalid() {
-            let result = require_decimal().then_ignore(end()).parse("12.34.678");
-            assert!(result.is_err());
-        }
-
-        #[test]
-        fn thousands() {
-            let result1 = require_decimal().then_ignore(end()).parse("12,345,678");
-            let result2 = require_decimal().then_ignore(end()).parse("12.345.678");
-            assert!(result1.is_err());
-            assert!(result2.is_err());
-        }
-
-        #[test]
-        fn thousands_and_decimals() {
-            let result1 = require_decimal().then_ignore(end()).parse("12,345.678");
-            let result2 = require_decimal().then_ignore(end()).parse("12.345,678");
+            let result1 = quantity()
+                .then_ignore(end())
+                .parse("12,345.678")
+                .into_result();
+            let result2 = quantity()
+                .then_ignore(end())
+                .parse("12.345,678")
+                .into_result();
             assert_eq!(result1, result2);
             assert_eq!(
                 result2,

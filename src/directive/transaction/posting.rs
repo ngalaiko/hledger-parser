@@ -21,11 +21,8 @@ pub struct Posting {
 }
 
 #[must_use]
-pub fn posting() -> impl Parser<char, Posting, Error = Simple<char>> {
-    let posting_amount = whitespace()
-        .repeated()
-        .at_least(2)
-        .ignore_then(amount(&crate::component::amount::Options::default()));
+pub fn posting<'a>() -> impl Parser<'a, &'a str, Posting, extra::Err<Rich<'a, char>>> {
+    let posting_amount = whitespace().repeated().at_least(2).ignore_then(amount());
     let posting_price = whitespace().repeated().ignore_then(price());
     let posting_assertion = whitespace().repeated().ignore_then(assertion());
     whitespace()
@@ -58,7 +55,8 @@ mod tests {
     fn full() {
         let result = posting()
             .then_ignore(end())
-            .parse(" ! assets:bank:checking   $1");
+            .parse(" ! assets:bank:checking   $1")
+            .into_result();
         assert_eq!(
             result,
             Ok(Posting {
@@ -83,7 +81,8 @@ mod tests {
     fn no_amount() {
         let result = posting()
             .then_ignore(end())
-            .parse(" ! assets:bank:checking");
+            .parse(" ! assets:bank:checking")
+            .into_result();
         assert_eq!(
             result,
             Ok(Posting {
@@ -104,7 +103,8 @@ mod tests {
     fn no_status() {
         let result = posting()
             .then_ignore(end())
-            .parse(" assets:bank:checking   $1");
+            .parse(" assets:bank:checking   $1")
+            .into_result();
         assert_eq!(
             result,
             Ok(Posting {
@@ -127,10 +127,13 @@ mod tests {
 
     #[test]
     fn with_comment() {
-        let result = posting().then_ignore(end()).parse(
-            " assets:bank:checking  ; some comment
+        let result = posting()
+            .then_ignore(end())
+            .parse(
+                " assets:bank:checking  ; some comment
                                     ; continuation of the same comment",
-        );
+            )
+            .into_result();
         assert_eq!(
             result,
             Ok(Posting {
@@ -149,7 +152,10 @@ mod tests {
 
     #[test]
     fn no_status_no_amount() {
-        let result = posting().then_ignore(end()).parse(" assets:bank:checking");
+        let result = posting()
+            .then_ignore(end())
+            .parse(" assets:bank:checking")
+            .into_result();
         assert_eq!(
             result,
             Ok(Posting {
@@ -170,7 +176,8 @@ mod tests {
     fn with_price_assertion() {
         let result = posting()
             .then_ignore(end())
-            .parse(" assets:bank:checking  1 EUR@@1 USD=1 USD");
+            .parse(" assets:bank:checking  1 EUR@@1 USD=1 USD")
+            .into_result();
         assert_eq!(
             result,
             Ok(Posting {
@@ -207,7 +214,8 @@ mod tests {
     fn with_assertion() {
         let result = posting()
             .then_ignore(end())
-            .parse(" assets:bank:checking  1 USD == 1 USD");
+            .parse(" assets:bank:checking  1 USD == 1 USD")
+            .into_result();
         assert_eq!(
             result,
             Ok(Posting {
@@ -240,7 +248,8 @@ mod tests {
     fn with_price() {
         let result = posting()
             .then_ignore(end())
-            .parse(" assets:bank:checking  1 USD @ 1 EUR");
+            .parse(" assets:bank:checking  1 USD @ 1 EUR")
+            .into_result();
         assert_eq!(
             result,
             Ok(Posting {
@@ -269,7 +278,8 @@ mod tests {
     fn not_enough_spaces() {
         let result = posting()
             .then_ignore(end())
-            .parse(" assets:bank:checking $1");
+            .parse(" assets:bank:checking $1")
+            .into_result();
         assert_eq!(
             result,
             Ok(Posting {
@@ -290,7 +300,8 @@ mod tests {
     fn no_ident() {
         let result = posting()
             .then_ignore(end())
-            .parse("assets:bank:checking $1");
+            .parse("assets:bank:checking $1")
+            .into_result();
         assert!(result.is_err());
     }
 }

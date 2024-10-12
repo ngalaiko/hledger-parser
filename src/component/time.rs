@@ -7,17 +7,17 @@ pub struct Time {
     seconds: u16,
 }
 
-pub fn time() -> impl Parser<char, Time, Error = Simple<char>> {
-    let digit = filter(move |c: &char| c.is_ascii_digit());
+pub fn time<'a>() -> impl Parser<'a, &'a str, Time, extra::Err<Rich<'a, char>>> {
+    let digit = any().filter(move |c: &char| c.is_ascii_digit());
     let hour = digit
         .repeated()
         .exactly(2)
         .collect::<String>()
         .map(|m| m.parse::<u16>().unwrap())
-        .validate(|s, span, emit| {
+        .validate(|s, e, emitter| {
             if !(0..=23).contains(&s) {
-                emit(Simple::custom(
-                    span,
+                emitter.emit(Rich::custom(
+                    e.span(),
                     format!("{s} must be between 0 and 23."),
                 ));
             }
@@ -29,10 +29,10 @@ pub fn time() -> impl Parser<char, Time, Error = Simple<char>> {
         .exactly(2)
         .collect::<String>()
         .map(|m| m.parse::<u16>().unwrap())
-        .validate(|s, span, emit| {
+        .validate(|s, e, emitter| {
             if !(0..=59).contains(&s) {
-                emit(Simple::custom(
-                    span,
+                emitter.emit(Rich::custom(
+                    e.span(),
                     format!("{s} must be between 0 and 59."),
                 ));
             }
@@ -43,10 +43,10 @@ pub fn time() -> impl Parser<char, Time, Error = Simple<char>> {
         .exactly(2)
         .collect::<String>()
         .map(|m| m.parse::<u16>().unwrap())
-        .validate(|s, span, emit| {
+        .validate(|s, e, emitter| {
             if !(0..=59).contains(&s) {
-                emit(Simple::custom(
-                    span,
+                emitter.emit(Rich::custom(
+                    e.span(),
                     format!("{s} must be between 0 and 59."),
                 ));
             }
@@ -70,7 +70,7 @@ mod tests {
 
     #[test]
     fn simple() {
-        let result = time().then_ignore(end()).parse("00:00:00");
+        let result = time().then_ignore(end()).parse("00:00:00").into_result();
         assert_eq!(
             result,
             Ok(Time {
@@ -82,7 +82,7 @@ mod tests {
     }
     #[test]
     fn error() {
-        let result = time().then_ignore(end()).parse("25:00:00");
+        let result = time().then_ignore(end()).parse("25:00:00").into_result();
         assert!(result.is_err());
     }
 }

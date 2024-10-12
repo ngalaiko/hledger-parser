@@ -9,7 +9,7 @@ pub struct Account {
     pub account_name: AccountName,
 }
 
-pub fn account() -> impl Parser<char, Account, Error = Simple<char>> {
+pub fn account<'a>() -> impl Parser<'a, &'a str, Account, extra::Err<Rich<'a, char>>> {
     just("account")
         .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(account_name())
@@ -25,7 +25,10 @@ mod tests {
 
     #[test]
     fn ok_simple() {
-        let result = account().then_ignore(end()).parse("account one:two:three");
+        let result = account()
+            .then_ignore(end())
+            .parse("account one:two:three")
+            .into_result();
         assert_eq!(
             result,
             Ok(Account {
@@ -42,7 +45,8 @@ mod tests {
     fn ok_with_padding() {
         let result = account()
             .then_ignore(end())
-            .parse("account     one:two:three   ");
+            .parse("account     one:two:three   ")
+            .into_result();
         assert_eq!(
             result,
             Ok(Account {
@@ -59,7 +63,8 @@ mod tests {
     fn ok_comment_merged() {
         let result = account()
             .then_ignore(end())
-            .parse("account     one:two:three ; comment ");
+            .parse("account     one:two:three ; comment ")
+            .into_result();
         assert_eq!(
             result,
             Ok(Account {
@@ -76,7 +81,8 @@ mod tests {
     fn ok_with_comment() {
         let result = account()
             .then_ignore(end())
-            .parse("account     one:two:three   ; comment ");
+            .parse("account     one:two:three   ; comment ")
+            .into_result();
         assert_eq!(
             result,
             Ok(Account {
@@ -93,7 +99,8 @@ mod tests {
     fn err() {
         let result = account()
             .then_ignore(end())
-            .parse("acount     one:two:three   ; comment ");
+            .parse("acount     one:two:three   ; comment ")
+            .into_result();
         assert!(result.is_err());
     }
 }

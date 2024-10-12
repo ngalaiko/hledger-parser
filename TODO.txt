@@ -1,4 +1,3 @@
-* migrate to chumsky 1.alpha
 * use state to remove optional date.year
 * parse periods
 * parse periodic transactions

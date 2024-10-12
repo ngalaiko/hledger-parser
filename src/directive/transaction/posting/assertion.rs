@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::component::amount::{amount, Amount, Options};
+use crate::component::amount::{amount, Amount};
 use crate::component::whitespace::whitespace;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -10,14 +10,15 @@ pub struct Assertion {
     pub amount: Amount,
 }
 
-pub fn assertion() -> impl Parser<char, Assertion, Error = Simple<char>> {
+pub fn assertion<'a>() -> impl Parser<'a, &'a str, Assertion, extra::Err<Rich<'a, char>>> {
     just("=")
         .repeated()
         .at_least(1)
         .at_most(2)
+        .collect::<Vec<_>>()
         .then(just("*").or_not())
         .then_ignore(whitespace().repeated())
-        .then(amount(&Options::default()))
+        .then(amount())
         .map(
             |((assertion_type, subaccount_inclusive), amount)| Assertion {
                 is_strict: assertion_type.len() == 2,
@@ -35,7 +36,7 @@ mod tests {
 
     #[test]
     fn single() {
-        let result = assertion().then_ignore(end()).parse("=1$");
+        let result = assertion().then_ignore(end()).parse("=1$").into_result();
         assert_eq!(
             result,
             Ok(Assertion {
@@ -52,7 +53,7 @@ mod tests {
 
     #[test]
     fn single_inclusive() {
-        let result = assertion().then_ignore(end()).parse("=*1$");
+        let result = assertion().then_ignore(end()).parse("=*1$").into_result();
         assert_eq!(
             result,
             Ok(Assertion {
@@ -69,7 +70,7 @@ mod tests {
 
     #[test]
     fn strict() {
-        let result = assertion().then_ignore(end()).parse("== 1$");
+        let result = assertion().then_ignore(end()).parse("== 1$").into_result();
         assert_eq!(
             result,
             Ok(Assertion {
@@ -86,7 +87,7 @@ mod tests {
 
     #[test]
     fn strict_inclusive() {
-        let result = assertion().then_ignore(end()).parse("==* 1$");
+        let result = assertion().then_ignore(end()).parse("==* 1$").into_result();
         assert_eq!(
             result,
             Ok(Assertion {

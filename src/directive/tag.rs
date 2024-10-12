@@ -6,19 +6,19 @@ use crate::utils::end_of_line;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Tag(String);
 
-pub fn tag() -> impl Parser<char, Tag, Error = Simple<char>> {
-    just::<_, _, Simple<char>>("tag")
+pub fn tag<'a>() -> impl Parser<'a, &'a str, Tag, extra::Err<Rich<'a, char>>> {
+    just("tag")
         .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(
-            text::newline()
-                .or(just(";").ignored())
-                .or(whitespace().ignored())
-                .not()
+            any()
+                .and_is(text::newline().not())
+                .and_is(just(";").not())
+                .and_is(whitespace().not())
                 .repeated()
-                .at_least(1),
+                .at_least(1)
+                .collect::<String>(),
         )
         .then_ignore(end_of_line())
-        .collect::<String>()
         .map(|tag| Tag(tag.trim_end().to_string()))
 }
 
@@ -28,31 +28,37 @@ mod tests {
 
     #[test]
     fn ok_simple() {
-        let result = tag().then_ignore(end()).parse("tag test-tag");
+        let result = tag().then_ignore(end()).parse("tag test-tag").into_result();
         assert_eq!(result, Ok(Tag("test-tag".to_string())));
     }
 
     #[test]
     fn ok_with_comment() {
-        let result = tag().then_ignore(end()).parse("tag Test ; comment");
+        let result = tag()
+            .then_ignore(end())
+            .parse("tag Test ; comment")
+            .into_result();
         assert_eq!(result, Ok(Tag("Test".to_string())));
     }
 
     #[test]
     fn err_with_space() {
-        let result = tag().then_ignore(end()).parse("tag Testing things");
+        let result = tag()
+            .then_ignore(end())
+            .parse("tag Testing things")
+            .into_result();
         assert!(result.is_err());
     }
 
     #[test]
     fn ok_with_trailing() {
-        let result = tag().then_ignore(end()).parse("tag 123  ");
+        let result = tag().then_ignore(end()).parse("tag 123  ").into_result();
         assert_eq!(result, Ok(Tag("123".to_string())));
     }
 
     #[test]
     fn err() {
-        let result = tag().then_ignore(end()).parse("t Test");
+        let result = tag().then_ignore(end()).parse("t Test").into_result();
         assert!(result.is_err());
     }
 }

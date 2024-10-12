@@ -11,7 +11,7 @@ pub enum Format {
     Rules,
 }
 
-pub fn format() -> impl Parser<char, Format, Error = Simple<char>> {
+pub fn format<'a>() -> impl Parser<'a, &'a str, Format, extra::Err<Rich<'a, char>>> {
     let journal = just("journal").map(|_| Format::Journal);
     let timeclock = just("timeclock").map(|_| Format::Timeclock);
     let timedot = just("timedot").map(|_| Format::Timedot);
@@ -34,49 +34,49 @@ mod tests {
 
     #[test]
     fn ok_journal() {
-        let result = format().then_ignore(end()).parse("journal");
+        let result = format().then_ignore(end()).parse("journal").into_result();
         assert_eq!(result, Ok(Format::Journal));
     }
 
     #[test]
     fn ok_timeclock() {
-        let result = format().then_ignore(end()).parse("timeclock");
+        let result = format().then_ignore(end()).parse("timeclock").into_result();
         assert_eq!(result, Ok(Format::Timeclock));
     }
 
     #[test]
     fn ok_timedot() {
-        let result = format().then_ignore(end()).parse("timedot");
+        let result = format().then_ignore(end()).parse("timedot").into_result();
         assert_eq!(result, Ok(Format::Timedot));
     }
 
     #[test]
     fn ok_csv() {
-        let result = format().then_ignore(end()).parse("csv");
+        let result = format().then_ignore(end()).parse("csv").into_result();
         assert_eq!(result, Ok(Format::Csv));
     }
 
     #[test]
     fn ok_ssv() {
-        let result = format().then_ignore(end()).parse("ssv");
+        let result = format().then_ignore(end()).parse("ssv").into_result();
         assert_eq!(result, Ok(Format::Ssv));
     }
 
     #[test]
     fn ok_tsv() {
-        let result = format().then_ignore(end()).parse("tsv");
+        let result = format().then_ignore(end()).parse("tsv").into_result();
         assert_eq!(result, Ok(Format::Tsv));
     }
 
     #[test]
     fn ok_rules() {
-        let result = format().then_ignore(end()).parse("rules");
+        let result = format().then_ignore(end()).parse("rules").into_result();
         assert_eq!(result, Ok(Format::Rules));
     }
 
     #[test]
     fn err() {
-        let result = format().then_ignore(end()).parse("err");
+        let result = format().then_ignore(end()).parse("err").into_result();
         assert!(result.is_err());
     }
 }

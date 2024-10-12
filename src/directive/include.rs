@@ -13,11 +13,16 @@ pub struct Include {
 }
 
 #[must_use]
-pub fn include() -> impl Parser<char, Include, Error = Simple<char>> {
+pub fn include<'a>() -> impl Parser<'a, &'a str, Include, extra::Err<Rich<'a, char>>> {
+    let path = any()
+        .and_is(text::newline().not())
+        .and_is(just(";").not())
+        .repeated()
+        .collect::<Vec<_>>();
     just("include")
         .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(format().then_ignore(just(":")).or_not())
-        .then(text::newline().or(just(";").ignored()).not().repeated())
+        .then(path)
         .then_ignore(end_of_line())
         .map(|(format, path)| Include {
             format,
@@ -31,7 +36,10 @@ mod tests {
 
     #[test]
     fn ok_without_format() {
-        let result = include().then_ignore(end()).parse("include path");
+        let result = include()
+            .then_ignore(end())
+            .parse("include path")
+            .into_result();
         assert_eq!(
             result,
             Ok(Include {
@@ -45,7 +53,8 @@ mod tests {
     fn ok_with_comment() {
         let result = include()
             .then_ignore(end())
-            .parse("include path  ; with a comment !");
+            .parse("include path  ; with a comment !")
+            .into_result();
         assert_eq!(
             result,
             Ok(Include {
@@ -59,7 +68,8 @@ mod tests {
     fn ok_with_spaces() {
         let result = include()
             .then_ignore(end())
-            .parse("include Path with space.csv");
+            .parse("include Path with space.csv")
+            .into_result();
         assert_eq!(
             result,
             Ok(Include {
@@ -71,7 +81,10 @@ mod tests {
 
     #[test]
     fn ok_with_format() {
-        let result = include().then_ignore(end()).parse("include rules:path");
+        let result = include()
+            .then_ignore(end())
+            .parse("include rules:path")
+            .into_result();
         assert_eq!(
             result,
             Ok(Include {
@@ -83,7 +96,10 @@ mod tests {
 
     #[test]
     fn ok_trailing() {
-        let result = include().then_ignore(end()).parse("include path   ");
+        let result = include()
+            .then_ignore(end())
+            .parse("include path   ")
+            .into_result();
         assert_eq!(
             result,
             Ok(Include {

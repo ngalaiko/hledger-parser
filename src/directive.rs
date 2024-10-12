@@ -37,8 +37,7 @@ pub enum Directive {
     Transaction(Transaction),
 }
 
-#[must_use]
-pub fn directive() -> impl Parser<char, Directive, Error = Simple<char>> {
+pub fn directive<'a>() -> impl Parser<'a, &'a str, Directive, extra::Err<Rich<'a, char>>> {
     account()
         .map(Directive::Account)
         .or(commodity().map(Directive::Commodity))
@@ -50,14 +49,14 @@ pub fn directive() -> impl Parser<char, Directive, Error = Simple<char>> {
         .or(transaction().map(Directive::Transaction))
 }
 
-#[must_use]
-pub fn directives() -> impl Parser<char, Vec<Directive>, Error = Simple<char>> {
+pub fn directives<'a>() -> impl Parser<'a, &'a str, Vec<Directive>, extra::Err<Rich<'a, char>>> {
     directive()
         .map(Some)
         .or(inline().map(|_| None))
         .or(line().map(|_| None))
         .or(block().map(|_| None))
-        .or(whitespace().repeated().map(|_| None))
+        .or(whitespace().repeated().map(|()| None))
         .separated_by(text::newline())
+        .collect::<Vec<_>>()
         .map(|directives| directives.into_iter().flatten().collect())
 }

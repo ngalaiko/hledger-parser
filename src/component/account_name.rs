@@ -9,22 +9,26 @@ impl AccountName {
     }
 }
 
-pub fn account_name() -> impl Parser<char, AccountName, Error = Simple<char>> {
-    let part = text::newline()
-        .or(just(":").ignored()) // forbidden, because it separates account parts
-        .or(just("  ").ignored()) // forbidden, because it separates inline account comment
-        .not()
+pub fn account_name<'a>() -> impl Parser<'a, &'a str, AccountName, extra::Err<Rich<'a, char>>> {
+    let part = any()
+        .and_is(text::newline().not())
+        .and_is(just(":").not()) // forbidden, because it separates account parts
+        .and_is(just("  ").not()) // forbidden, because it separates inline account comment
         .repeated()
+        .at_least(1)
         .collect::<String>();
-    part.separated_by(just(":")).at_least(1).map(|parts| {
-        AccountName::from_strs(
-            &parts
-                .iter()
-                .map(|s| s.trim())
-                .map(std::string::ToString::to_string)
-                .collect::<Vec<String>>(),
-        )
-    })
+    part.separated_by(just(":"))
+        .at_least(1)
+        .collect::<Vec<_>>()
+        .map(|parts| {
+            AccountName::from_strs(
+                &parts
+                    .iter()
+                    .map(|s| s.trim())
+                    .map(std::string::ToString::to_string)
+                    .collect::<Vec<String>>(),
+            )
+        })
 }
 
 #[cfg(test)]
@@ -33,7 +37,10 @@ mod tests {
 
     #[test]
     fn ok_simple() {
-        let result = account_name().then_ignore(end()).parse("account");
+        let result = account_name()
+            .then_ignore(end())
+            .parse("account")
+            .into_result();
         assert_eq!(result, Ok(AccountName(vec![String::from("account")])));
     }
 
@@ -41,7 +48,8 @@ mod tests {
     fn ok_complex() {
         let result = account_name()
             .then_ignore(end())
-            .parse("account:second level:third\"level");
+            .parse("account:second level:third\"level")
+            .into_result();
         assert_eq!(
             result,
             Ok(AccountName(vec![

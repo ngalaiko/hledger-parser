@@ -3,7 +3,7 @@ use chumsky::prelude::*;
 use crate::component::whitespace::whitespace;
 use crate::{
     component::{
-        amount::{amount, Amount, Options},
+        amount::{amount, Amount},
         commodity::{commodity, Commodity},
         date::{date, Date},
         time::time,
@@ -18,8 +18,7 @@ pub struct Price {
     pub amount: Amount,
 }
 
-#[must_use]
-pub fn price() -> impl Parser<char, Price, Error = Simple<char>> {
+pub fn price<'a>() -> impl Parser<'a, &'a str, Price, extra::Err<Rich<'a, char>>> {
     just("P")
         .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(date())
@@ -27,11 +26,7 @@ pub fn price() -> impl Parser<char, Price, Error = Simple<char>> {
         .then_ignore(time().then(whitespace().repeated().at_least(1)).or_not())
         .then(commodity())
         .then_ignore(whitespace().repeated().at_least(1))
-        .then(amount(&Options {
-            quantity: crate::component::quantity::Options {
-                require_decimal: false,
-            },
-        }))
+        .then(amount())
         .then_ignore(end_of_line())
         .map(|((date, commodity), amount)| Price {
             date,
@@ -48,7 +43,10 @@ mod tests {
 
     #[test]
     fn simple() {
-        let result = price().then_ignore(end()).parse("P 2009-01-01 € $1.35");
+        let result = price()
+            .then_ignore(end())
+            .parse("P 2009-01-01 € $1.35")
+            .into_result();
         assert_eq!(
             result,
             Ok(Price {
@@ -74,7 +72,8 @@ mod tests {
     fn with_time() {
         let result = price()
             .then_ignore(end())
-            .parse("P 2024-04-18 00:00:00 BTC 691747.70790400 SEK");
+            .parse("P 2024-04-18 00:00:00 BTC 691747.70790400 SEK")
+            .into_result();
         assert_eq!(
             result,
             Ok(Price {
@@ -100,7 +99,8 @@ mod tests {
     fn comment() {
         let result = price()
             .then_ignore(end())
-            .parse("P 2009-01-01 € $1.35  ; with comment");
+            .parse("P 2009-01-01 € $1.35  ; with comment")
+            .into_result();
         assert_eq!(
             result,
             Ok(Price {

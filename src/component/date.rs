@@ -1,8 +1,4 @@
-use chumsky::{
-    error::Simple,
-    prelude::{filter, just},
-    Parser,
-};
+use chumsky::prelude::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Date {
@@ -11,9 +7,8 @@ pub struct Date {
     pub day: u16,
 }
 
-#[allow(clippy::module_name_repetitions)]
-pub fn date() -> impl Parser<char, Date, Error = Simple<char>> {
-    let digit = filter(move |c: &char| c.is_ascii_digit());
+pub fn date<'a>() -> impl Parser<'a, &'a str, Date, extra::Err<Rich<'a, char>>> {
+    let digit = any().filter(|c: &char| c.is_ascii_digit());
     let year = digit
         .repeated()
         .exactly(4)
@@ -25,10 +20,10 @@ pub fn date() -> impl Parser<char, Date, Error = Simple<char>> {
         .at_most(2)
         .collect::<String>()
         .map(|m| m.parse::<u16>().unwrap())
-        .validate(|s, span, emit| {
+        .validate(|s, e, emitter| {
             if !(1..=12).contains(&s) {
-                emit(Simple::custom(
-                    span,
+                emitter.emit(Rich::custom(
+                    e.span(),
                     format!("{s} must be between 1 and 12."),
                 ));
             }
@@ -40,10 +35,10 @@ pub fn date() -> impl Parser<char, Date, Error = Simple<char>> {
         .at_most(2)
         .collect::<String>()
         .map(|m| m.parse::<u16>().unwrap())
-        .validate(|s, span, emit| {
+        .validate(|s, e, emitter| {
             if !(1..=31).contains(&s) {
-                emit(Simple::custom(
-                    span,
+                emitter.emit(Rich::custom(
+                    e.span(),
                     format!("{s} must be between 1 and 31."),
                 ));
             }
@@ -110,7 +105,7 @@ mod tests {
                 },
             ),
         ] {
-            let result = date().then_ignore(end()).parse(input);
+            let result = date().then_ignore(end()).parse(input).into_result();
             assert_eq!(result, Ok(expected), "{input}");
         }
     }

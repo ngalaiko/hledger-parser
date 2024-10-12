@@ -3,9 +3,8 @@ use chumsky::prelude::*;
 use crate::component::whitespace::whitespace;
 use crate::{
     component::{
-        amount::{self, amount, Amount},
+        amount::{amount, Amount},
         commodity::{commodity as parse_commodity, Commodity as ParsedCommodity},
-        quantity,
     },
     utils::end_of_line,
 };
@@ -16,33 +15,34 @@ pub enum Commodity {
     Commodity(ParsedCommodity),
 }
 
-pub fn commodity() -> impl Parser<char, Commodity, Error = Simple<char>> {
+pub fn commodity<'a>() -> impl Parser<'a, &'a str, Commodity, extra::Err<Rich<'a, char>>> {
     just("commodity")
         .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(
-            amount(&amount::Options {
-                quantity: quantity::Options {
-                    require_decimal: true,
-                },
-            })
-            .map(Commodity::Amount)
-            .or(parse_commodity().map(Commodity::Commodity)),
+            amount()
+                .map(Commodity::Amount)
+                .or(parse_commodity().map(Commodity::Commodity)),
         )
         .then_ignore(end_of_line())
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::component::quantity::Quantity;
+
     use super::*;
 
     #[test]
     fn with_symbol() {
-        let result = commodity().then_ignore(end()).parse("commodity $1000.00");
+        let result = commodity()
+            .then_ignore(end())
+            .parse("commodity $1000.00")
+            .into_result();
         assert_eq!(
             result,
             Ok(Commodity::Amount(Amount {
                 commodity: ParsedCommodity::from_str("$"),
-                quantity: quantity::Quantity {
+                quantity: Quantity {
                     mantissa: 100_000,
                     places: 2,
                 },
@@ -55,12 +55,13 @@ mod tests {
     fn no_symbol() {
         let result = commodity()
             .then_ignore(end())
-            .parse("commodity 1,000,000.0000");
+            .parse("commodity 1,000,000.0000")
+            .into_result();
         assert_eq!(
             result,
             Ok(Commodity::Amount(Amount {
                 commodity: ParsedCommodity::from_str(""),
-                quantity: quantity::Quantity {
+                quantity: Quantity {
                     mantissa: 10_000_000_000,
                     places: 4,
                 },
@@ -73,12 +74,13 @@ mod tests {
     fn comment() {
         let result = commodity()
             .then_ignore(end())
-            .parse("commodity 1. USD ; with comment");
+            .parse("commodity 1. USD ; with comment")
+            .into_result();
         assert_eq!(
             result,
             Ok(Commodity::Amount(Amount {
                 commodity: ParsedCommodity::from_str("USD"),
-                quantity: quantity::Quantity {
+                quantity: Quantity {
                     mantissa: 1,
                     places: 0,
                 },
@@ -91,7 +93,8 @@ mod tests {
     fn just_currency() {
         let result = commodity()
             .then_ignore(end())
-            .parse("commodity \"AAAA 2023\"  ");
+            .parse("commodity \"AAAA 2023\"  ")
+            .into_result();
         assert_eq!(
             result,
             Ok(Commodity::Commodity(ParsedCommodity::from_str("AAAA 2023")))

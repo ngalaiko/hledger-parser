@@ -22,27 +22,26 @@ pub struct Transaction {
     pub postings: Vec<Posting>,
 }
 
-#[must_use]
-pub fn transaction() -> impl Parser<char, Transaction, Error = Simple<char>> {
-    let code = text::newline()
-        .or(just(")").ignored()) // forbidden, because it indicates end of the code
-        .not()
+pub fn transaction<'a>() -> impl Parser<'a, &'a str, Transaction, extra::Err<Rich<'a, char>>> {
+    let code = any()
+        .and_is(text::newline().not())
+        .and_is(just(")").not()) // forbidden, because it indicates end of the code
         .repeated()
         .at_least(1)
         .collect::<String>()
         .delimited_by(just('('), just(')'));
 
-    let payee = text::newline()
-        .or(just("|").ignored()) // forbidden, because it is a description separator
-        .or(just(";").ignored()) // forbidden, because it indicates comment
-        .not()
+    let payee = any()
+        .and_is(text::newline().not())
+        .and_is(just("|").not()) // forbidden, because it is a description separator
+        .and_is(just(";").not()) // forbidden, because it indicates comment
         .repeated()
         .collect::<String>();
 
     let description = just("|").ignore_then(whitespace().repeated()).ignore_then(
-        text::newline::<_, Simple<char>>()
-            .or(just(";").ignored()) // forbidden, because it indicates comment
-            .not()
+        any()
+            .and_is(text::newline().not())
+            .and_is(just(";").not()) // forbidden, because it indicates comment
             .repeated()
             .collect::<String>(),
     );
@@ -56,7 +55,12 @@ pub fn transaction() -> impl Parser<char, Transaction, Error = Simple<char>> {
 
     header
         .then_ignore(text::newline())
-        .then(posting().separated_by(text::newline()).at_least(2))
+        .then(
+            posting()
+                .separated_by(text::newline())
+                .at_least(2)
+                .collect::<Vec<_>>(),
+        )
         .map(
             |(((((date, status), code), payee), description), postings)| Transaction {
                 date,
@@ -79,13 +83,16 @@ mod tests {
 
     #[test]
     fn full() {
-        let result = transaction().then_ignore(end()).parse(
-            "2008/01/01 * (123) salary | january ; transaction comment
+        let result = transaction()
+            .then_ignore(end())
+            .parse(
+                "2008/01/01 * (123) salary | january ; transaction comment
                                                  ; same comment second line
     assets:bank:checking   $1  ; posting comment
                                ; same comment second line
     income:salary  ",
-        );
+            )
+            .into_result();
         assert_eq!(
             result,
             Ok(Transaction {
@@ -131,11 +138,14 @@ mod tests {
 
     #[test]
     fn simple() {
-        let result = transaction().then_ignore(end()).parse(
-            "2008/01/01 salary
+        let result = transaction()
+            .then_ignore(end())
+            .parse(
+                "2008/01/01 salary
     assets:bank:checking   $1
     income:salary  ",
-        );
+            )
+            .into_result();
         assert_eq!(
             result,
             Ok(Transaction {
