@@ -2,6 +2,7 @@ use chumsky::prelude::*;
 
 use crate::component::amount::{amount, Amount};
 use crate::component::whitespace::whitespace;
+use crate::state::State;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Assertion {
@@ -10,7 +11,8 @@ pub struct Assertion {
     pub amount: Amount,
 }
 
-pub fn assertion<'a>() -> impl Parser<'a, &'a str, Assertion, extra::Err<Rich<'a, char>>> {
+pub fn assertion<'a>() -> impl Parser<'a, &'a str, Assertion, extra::Full<Rich<'a, char>, State, ()>>
+{
     just("=")
         .repeated()
         .at_least(1)

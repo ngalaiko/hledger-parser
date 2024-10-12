@@ -1,24 +1,21 @@
 use chumsky::prelude::*;
 
+use crate::component::amount::{amount, Amount};
+use crate::component::commodity::{commodity, Commodity};
+use crate::component::date::date;
+use crate::component::time::time;
 use crate::component::whitespace::whitespace;
-use crate::{
-    component::{
-        amount::{amount, Amount},
-        commodity::{commodity, Commodity},
-        date::{date, Date},
-        time::time,
-    },
-    utils::end_of_line,
-};
+use crate::state::State;
+use crate::utils::end_of_line;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Price {
-    pub date: Date,
+    pub date: chrono::NaiveDate,
     pub commodity: Commodity,
     pub amount: Amount,
 }
 
-pub fn price<'a>() -> impl Parser<'a, &'a str, Price, extra::Err<Rich<'a, char>>> {
+pub fn price<'a>() -> impl Parser<'a, &'a str, Price, extra::Full<Rich<'a, char>, State, ()>> {
     just("P")
         .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(date())
@@ -50,11 +47,7 @@ mod tests {
         assert_eq!(
             result,
             Ok(Price {
-                date: Date {
-                    year: Some(2009),
-                    month: 1,
-                    day: 1,
-                },
+                date: chrono::NaiveDate::from_ymd_opt(2009, 1, 1).unwrap(),
                 commodity: Commodity::from_str("€"),
                 amount: Amount {
                     quantity: Quantity {
@@ -77,11 +70,7 @@ mod tests {
         assert_eq!(
             result,
             Ok(Price {
-                date: Date {
-                    year: Some(2024),
-                    month: 4,
-                    day: 18,
-                },
+                date: chrono::NaiveDate::from_ymd_opt(2024, 4, 18).unwrap(),
                 commodity: Commodity::from_str("BTC"),
                 amount: Amount {
                     quantity: Quantity {
@@ -104,11 +93,7 @@ mod tests {
         assert_eq!(
             result,
             Ok(Price {
-                date: Date {
-                    year: Some(2009),
-                    month: 1,
-                    day: 1,
-                },
+                date: chrono::NaiveDate::from_ymd_opt(2009, 1, 1).unwrap(),
                 commodity: Commodity::from_str("€"),
                 amount: Amount {
                     quantity: Quantity {

@@ -1,5 +1,7 @@
 use chumsky::prelude::*;
 
+use crate::state::State;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Status {
     // !
@@ -8,7 +10,7 @@ pub enum Status {
     Cleared,
 }
 
-pub fn status<'a>() -> impl Parser<'a, &'a str, Status, extra::Err<Rich<'a, char>>> {
+pub fn status<'a>() -> impl Parser<'a, &'a str, Status, extra::Full<Rich<'a, char>, State, ()>> {
     choice([just("!").to(Status::Pending), just("*").to(Status::Cleared)])
 }
 

@@ -3,18 +3,16 @@ use chumsky::prelude::*;
 mod posting;
 mod status;
 
-use self::posting::{posting, Posting};
-use self::status::{status, Status};
-
+use crate::component::date::date;
 use crate::component::whitespace::whitespace;
-use crate::{
-    component::date::{date, Date},
-    utils::end_of_line,
-};
+use crate::directive::transaction::posting::{posting, Posting};
+use crate::directive::transaction::status::{status, Status};
+use crate::state::State;
+use crate::utils::end_of_line;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Transaction {
-    pub date: Date,
+    pub date: chrono::NaiveDate,
     pub status: Option<Status>,
     pub code: Option<String>,
     pub payee: String,
@@ -22,7 +20,8 @@ pub struct Transaction {
     pub postings: Vec<Posting>,
 }
 
-pub fn transaction<'a>() -> impl Parser<'a, &'a str, Transaction, extra::Err<Rich<'a, char>>> {
+pub fn transaction<'a>(
+) -> impl Parser<'a, &'a str, Transaction, extra::Full<Rich<'a, char>, State, ()>> {
     let code = any()
         .and_is(text::newline().not())
         .and_is(just(")").not()) // forbidden, because it indicates end of the code
@@ -96,11 +95,7 @@ mod tests {
         assert_eq!(
             result,
             Ok(Transaction {
-                date: Date {
-                    year: Some(2008),
-                    month: 1,
-                    day: 1
-                },
+                date: chrono::NaiveDate::from_ymd_opt(2008, 1, 1).unwrap(),
                 code: Some(String::from("123")),
                 status: Some(Status::Cleared),
                 payee: String::from("salary"),
@@ -149,11 +144,7 @@ mod tests {
         assert_eq!(
             result,
             Ok(Transaction {
-                date: Date {
-                    year: Some(2008),
-                    month: 1,
-                    day: 1
-                },
+                date: chrono::NaiveDate::from_ymd_opt(2008, 1, 1).unwrap(),
                 code: None,
                 status: None,
                 payee: String::from("salary"),

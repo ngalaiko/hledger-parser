@@ -1,13 +1,10 @@
 use chumsky::prelude::*;
 
+use crate::component::amount::{amount, Amount};
+use crate::component::commodity::{commodity as parse_commodity, Commodity as ParsedCommodity};
 use crate::component::whitespace::whitespace;
-use crate::{
-    component::{
-        amount::{amount, Amount},
-        commodity::{commodity as parse_commodity, Commodity as ParsedCommodity},
-    },
-    utils::end_of_line,
-};
+use crate::state::State;
+use crate::utils::end_of_line;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Commodity {
@@ -15,7 +12,8 @@ pub enum Commodity {
     Commodity(ParsedCommodity),
 }
 
-pub fn commodity<'a>() -> impl Parser<'a, &'a str, Commodity, extra::Err<Rich<'a, char>>> {
+pub fn commodity<'a>() -> impl Parser<'a, &'a str, Commodity, extra::Full<Rich<'a, char>, State, ()>>
+{
     just("commodity")
         .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(

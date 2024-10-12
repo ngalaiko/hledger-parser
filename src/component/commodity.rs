@@ -1,5 +1,7 @@
 use chumsky::prelude::*;
 
+use crate::state::State;
+
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Commodity(String);
 
@@ -9,7 +11,8 @@ impl Commodity {
     }
 }
 
-pub fn commodity<'a>() -> impl Parser<'a, &'a str, Commodity, extra::Err<Rich<'a, char>>> {
+pub fn commodity<'a>() -> impl Parser<'a, &'a str, Commodity, extra::Full<Rich<'a, char>, State, ()>>
+{
     let letter = any().filter(|c: &char| c.is_alphabetic());
     let digit = any().filter(|c: &char| c.is_ascii_digit());
     let space = one_of(" \t\u{a0}");

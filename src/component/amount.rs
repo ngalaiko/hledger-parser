@@ -1,11 +1,9 @@
 use chumsky::prelude::*;
 
+use crate::component::commodity::{commodity, Commodity};
+use crate::component::quantity::{quantity, Quantity};
 use crate::component::whitespace::whitespace;
-
-use super::{
-    commodity::{commodity, Commodity},
-    quantity::{quantity, Quantity},
-};
+use crate::state::State;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Amount {
@@ -14,7 +12,7 @@ pub struct Amount {
     pub commodity: Commodity,
 }
 
-pub fn amount<'a>() -> impl Parser<'a, &'a str, Amount, extra::Err<Rich<'a, char>>> {
+pub fn amount<'a>() -> impl Parser<'a, &'a str, Amount, extra::Full<Rich<'a, char>, State, ()>> {
     let sign_quantity_commodity = one_of("-+")
         .then_ignore(whitespace().repeated())
         .then(quantity())

@@ -1,5 +1,7 @@
 use chumsky::prelude::*;
 
+use crate::state::State;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct AccountName(Vec<String>);
 
@@ -9,7 +11,8 @@ impl AccountName {
     }
 }
 
-pub fn account_name<'a>() -> impl Parser<'a, &'a str, AccountName, extra::Err<Rich<'a, char>>> {
+pub fn account_name<'a>(
+) -> impl Parser<'a, &'a str, AccountName, extra::Full<Rich<'a, char>, State, ()>> {
     let part = any()
         .and_is(text::newline().not())
         .and_is(just(":").not()) // forbidden, because it separates account parts

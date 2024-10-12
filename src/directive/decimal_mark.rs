@@ -1,12 +1,14 @@
 use chumsky::prelude::*;
 
 use crate::component::whitespace::whitespace;
+use crate::state::State;
 use crate::utils::end_of_line;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct DecimalMark(char);
 
-pub fn decimal_mark<'a>() -> impl Parser<'a, &'a str, DecimalMark, extra::Err<Rich<'a, char>>> {
+pub fn decimal_mark<'a>(
+) -> impl Parser<'a, &'a str, DecimalMark, extra::Full<Rich<'a, char>, State, ()>> {
     just("decimal-mark")
         .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(one_of(".,"))

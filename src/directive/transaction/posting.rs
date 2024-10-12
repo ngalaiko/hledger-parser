@@ -2,11 +2,12 @@ use chumsky::prelude::*;
 
 mod assertion;
 
-use super::status::{status, Status};
 use crate::component::account_name::{account_name, AccountName};
 use crate::component::amount::{amount, Amount};
 use crate::component::price::{price, Price};
 use crate::component::whitespace::whitespace;
+use crate::directive::transaction::status::{status, Status};
+use crate::state::State;
 use crate::utils::end_of_line;
 
 use self::assertion::{assertion, Assertion};
@@ -21,7 +22,7 @@ pub struct Posting {
 }
 
 #[must_use]
-pub fn posting<'a>() -> impl Parser<'a, &'a str, Posting, extra::Err<Rich<'a, char>>> {
+pub fn posting<'a>() -> impl Parser<'a, &'a str, Posting, extra::Full<Rich<'a, char>, State, ()>> {
     let posting_amount = whitespace().repeated().at_least(2).ignore_then(amount());
     let posting_price = whitespace().repeated().ignore_then(price());
     let posting_assertion = whitespace().repeated().ignore_then(assertion());

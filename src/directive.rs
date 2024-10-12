@@ -9,9 +9,12 @@ mod transaction;
 
 use chumsky::prelude::*;
 
-use crate::component::{
-    comment::{block, inline, line},
-    whitespace::whitespace,
+use crate::{
+    component::{
+        comment::{block, inline, line},
+        whitespace::whitespace,
+    },
+    state::State,
 };
 
 use self::{
@@ -37,7 +40,8 @@ pub enum Directive {
     Transaction(Transaction),
 }
 
-pub fn directive<'a>() -> impl Parser<'a, &'a str, Directive, extra::Err<Rich<'a, char>>> {
+pub fn directive<'a>() -> impl Parser<'a, &'a str, Directive, extra::Full<Rich<'a, char>, State, ()>>
+{
     account()
         .map(Directive::Account)
         .or(commodity().map(Directive::Commodity))
@@ -49,7 +53,8 @@ pub fn directive<'a>() -> impl Parser<'a, &'a str, Directive, extra::Err<Rich<'a
         .or(transaction().map(Directive::Transaction))
 }
 
-pub fn directives<'a>() -> impl Parser<'a, &'a str, Vec<Directive>, extra::Err<Rich<'a, char>>> {
+pub fn directives<'a>(
+) -> impl Parser<'a, &'a str, Vec<Directive>, extra::Full<Rich<'a, char>, State, ()>> {
     directive()
         .map(Some)
         .or(inline().map(|_| None))

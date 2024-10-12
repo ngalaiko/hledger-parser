@@ -1,5 +1,7 @@
 use chumsky::prelude::*;
 
+use crate::state::State;
+
 #[derive(Clone, Default, Debug, PartialEq)]
 pub struct Quantity {
     pub mantissa: u64,
@@ -15,7 +17,8 @@ impl Quantity {
     }
 }
 
-pub fn quantity<'a>() -> impl Parser<'a, &'a str, Quantity, extra::Err<Rich<'a, char>>> {
+pub fn quantity<'a>() -> impl Parser<'a, &'a str, Quantity, extra::Full<Rich<'a, char>, State, ()>>
+{
     let fraction = fraction(',').or(fraction('.')).map(|fraction| Quantity {
         mantissa: fraction.parse().unwrap(),
         places: fraction.len().try_into().unwrap(),
@@ -46,15 +49,16 @@ pub fn quantity<'a>() -> impl Parser<'a, &'a str, Quantity, extra::Err<Rich<'a, 
         .or(digits)
 }
 
-fn digit<'a>() -> impl Parser<'a, &'a str, char, extra::Err<Rich<'a, char>>> {
+fn digit<'a>() -> impl Parser<'a, &'a str, char, extra::Full<Rich<'a, char>, State, ()>> {
     any().filter(|c: &char| c.is_ascii_digit())
 }
 
-fn digits<'a>() -> impl Parser<'a, &'a str, String, extra::Err<Rich<'a, char>>> {
+fn digits<'a>() -> impl Parser<'a, &'a str, String, extra::Full<Rich<'a, char>, State, ()>> {
     digit().repeated().at_least(1).collect::<String>()
 }
 
-fn one_to_three_digits<'a>() -> impl Parser<'a, &'a str, String, extra::Err<Rich<'a, char>>> {
+fn one_to_three_digits<'a>(
+) -> impl Parser<'a, &'a str, String, extra::Full<Rich<'a, char>, State, ()>> {
     digit()
         .repeated()
         .at_least(1)
@@ -62,19 +66,23 @@ fn one_to_three_digits<'a>() -> impl Parser<'a, &'a str, String, extra::Err<Rich
         .collect::<String>()
 }
 
-fn three_digits<'a>() -> impl Parser<'a, &'a str, String, extra::Err<Rich<'a, char>>> {
+fn three_digits<'a>() -> impl Parser<'a, &'a str, String, extra::Full<Rich<'a, char>, State, ()>> {
     digit().repeated().exactly(3).collect::<String>()
 }
 
-fn none_or_more_digits<'a>() -> impl Parser<'a, &'a str, String, extra::Err<Rich<'a, char>>> {
+fn none_or_more_digits<'a>(
+) -> impl Parser<'a, &'a str, String, extra::Full<Rich<'a, char>, State, ()>> {
     digit().repeated().collect::<String>()
 }
 
-fn fraction<'a>(mark: char) -> impl Parser<'a, &'a str, String, extra::Err<Rich<'a, char>>> {
+fn fraction<'a>(
+    mark: char,
+) -> impl Parser<'a, &'a str, String, extra::Full<Rich<'a, char>, State, ()>> {
     just(mark).ignore_then(none_or_more_digits())
 }
 
-fn thousands_and_decimals<'a>() -> impl Parser<'a, &'a str, Quantity, extra::Err<Rich<'a, char>>> {
+fn thousands_and_decimals<'a>(
+) -> impl Parser<'a, &'a str, Quantity, extra::Full<Rich<'a, char>, State, ()>> {
     thousands(',')
         .then(fraction('.'))
         .or(thousands('.').then(fraction(',')))
@@ -88,7 +96,7 @@ fn thousands_and_decimals<'a>() -> impl Parser<'a, &'a str, Quantity, extra::Err
 
 fn thousands<'a>(
     mark: char,
-) -> impl Parser<'a, &'a str, (String, Vec<String>), extra::Err<Rich<'a, char>>> {
+) -> impl Parser<'a, &'a str, (String, Vec<String>), extra::Full<Rich<'a, char>, State, ()>> {
     one_to_three_digits().then(
         three_digits()
             .separated_by(just(mark))
@@ -98,7 +106,7 @@ fn thousands<'a>(
     )
 }
 
-fn decimal<'a>() -> impl Parser<'a, &'a str, Quantity, extra::Err<Rich<'a, char>>> {
+fn decimal<'a>() -> impl Parser<'a, &'a str, Quantity, extra::Full<Rich<'a, char>, State, ()>> {
     let decimal = |mark: char| digits().then(fraction(mark));
     decimal(',')
         .or(decimal('.'))

@@ -1,12 +1,13 @@
 use chumsky::prelude::*;
 
 use crate::component::whitespace::whitespace;
+use crate::state::State;
 use crate::utils::end_of_line;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Tag(String);
 
-pub fn tag<'a>() -> impl Parser<'a, &'a str, Tag, extra::Err<Rich<'a, char>>> {
+pub fn tag<'a>() -> impl Parser<'a, &'a str, Tag, extra::Full<Rich<'a, char>, State, ()>> {
     just("tag")
         .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(

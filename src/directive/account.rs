@@ -2,6 +2,7 @@ use chumsky::prelude::*;
 
 use crate::component::account_name::{account_name, AccountName};
 use crate::component::whitespace::whitespace;
+use crate::state::State;
 use crate::utils::end_of_line_prefixed;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -9,7 +10,7 @@ pub struct Account {
     pub account_name: AccountName,
 }
 
-pub fn account<'a>() -> impl Parser<'a, &'a str, Account, extra::Err<Rich<'a, char>>> {
+pub fn account<'a>() -> impl Parser<'a, &'a str, Account, extra::Full<Rich<'a, char>, State, ()>> {
     just("account")
         .ignore_then(whitespace().repeated().at_least(1))
         .ignore_then(account_name())

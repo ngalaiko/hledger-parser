@@ -1,5 +1,7 @@
 use chumsky::prelude::*;
 
+use crate::state::State;
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Format {
     Journal,
@@ -11,7 +13,7 @@ pub enum Format {
     Rules,
 }
 
-pub fn format<'a>() -> impl Parser<'a, &'a str, Format, extra::Err<Rich<'a, char>>> {
+pub fn format<'a>() -> impl Parser<'a, &'a str, Format, extra::Full<Rich<'a, char>, State, ()>> {
     let journal = just("journal").map(|_| Format::Journal);
     let timeclock = just("timeclock").map(|_| Format::Timeclock);
     let timedot = just("timedot").map(|_| Format::Timedot);

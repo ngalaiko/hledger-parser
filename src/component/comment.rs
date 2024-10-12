@@ -1,11 +1,12 @@
 use chumsky::prelude::*;
 
 use crate::component::whitespace::whitespace;
+use crate::state::State;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Comment(String);
 
-pub fn line<'a>() -> impl Parser<'a, &'a str, Comment, extra::Err<Rich<'a, char>>> {
+pub fn line<'a>() -> impl Parser<'a, &'a str, Comment, extra::Full<Rich<'a, char>, State, ()>> {
     just("#")
         .ignore_then(
             any()
@@ -16,7 +17,7 @@ pub fn line<'a>() -> impl Parser<'a, &'a str, Comment, extra::Err<Rich<'a, char>
         .map(Comment)
 }
 
-pub fn block<'a>() -> impl Parser<'a, &'a str, Comment, extra::Err<Rich<'a, char>>> {
+pub fn block<'a>() -> impl Parser<'a, &'a str, Comment, extra::Full<Rich<'a, char>, State, ()>> {
     any()
         .and_is(text::newline().not())
         .and_is(just("end comment\n").not())
@@ -28,7 +29,7 @@ pub fn block<'a>() -> impl Parser<'a, &'a str, Comment, extra::Err<Rich<'a, char
         .map(|lines| Comment(lines.join("\n").trim().to_string()))
 }
 
-pub fn inline<'a>() -> impl Parser<'a, &'a str, Comment, extra::Err<Rich<'a, char>>> {
+pub fn inline<'a>() -> impl Parser<'a, &'a str, Comment, extra::Full<Rich<'a, char>, State, ()>> {
     let comment = just(";").ignore_then(
         any()
             .and_is(text::newline().not())

@@ -1,5 +1,7 @@
 use chumsky::prelude::*;
 
+use crate::state::State;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Time {
     hours: u16,
@@ -7,7 +9,7 @@ pub struct Time {
     seconds: u16,
 }
 
-pub fn time<'a>() -> impl Parser<'a, &'a str, Time, extra::Err<Rich<'a, char>>> {
+pub fn time<'a>() -> impl Parser<'a, &'a str, Time, extra::Full<Rich<'a, char>, State, ()>> {
     let digit = any().filter(move |c: &char| c.is_ascii_digit());
     let hour = digit
         .repeated()

@@ -2,6 +2,7 @@ use chumsky::prelude::*;
 
 use crate::component::amount::{amount, Amount};
 use crate::component::whitespace::whitespace;
+use crate::state::State;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Price {
@@ -9,7 +10,7 @@ pub enum Price {
     Total(Amount),
 }
 
-pub fn price<'a>() -> impl Parser<'a, &'a str, Price, extra::Err<Rich<'a, char>>> {
+pub fn price<'a>() -> impl Parser<'a, &'a str, Price, extra::Full<Rich<'a, char>, State, ()>> {
     just("@")
         .repeated()
         .at_least(1)

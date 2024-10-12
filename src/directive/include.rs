@@ -2,8 +2,9 @@ use chumsky::prelude::*;
 
 mod format;
 
-use self::format::{format, Format};
 use crate::component::whitespace::whitespace;
+use crate::directive::include::format::{format, Format};
+use crate::state::State;
 use crate::utils::end_of_line;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -13,7 +14,7 @@ pub struct Include {
 }
 
 #[must_use]
-pub fn include<'a>() -> impl Parser<'a, &'a str, Include, extra::Err<Rich<'a, char>>> {
+pub fn include<'a>() -> impl Parser<'a, &'a str, Include, extra::Full<Rich<'a, char>, State, ()>> {
     let path = any()
         .and_is(text::newline().not())
         .and_is(just(";").not())
