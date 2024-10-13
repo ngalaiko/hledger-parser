@@ -2,7 +2,7 @@ use chumsky::prelude::*;
 
 use crate::component::amount::{amount, Amount};
 use crate::component::commodity::{commodity, Commodity};
-use crate::component::date::date;
+use crate::component::date::simple::date;
 use crate::component::time::time;
 use crate::component::whitespace::whitespace;
 use crate::state::State;

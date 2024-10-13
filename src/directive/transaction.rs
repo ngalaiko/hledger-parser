@@ -3,7 +3,7 @@ use chumsky::prelude::*;
 mod posting;
 mod status;
 
-use crate::component::date::date;
+use crate::component::date::simple::date;
 use crate::component::whitespace::whitespace;
 use crate::directive::transaction::posting::{posting, Posting};
 use crate::directive::transaction::status::{status, Status};
