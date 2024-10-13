@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::time::SystemTime;
 
 use chrono::Datelike;
@@ -298,7 +296,8 @@ fn start_of_month_numeric<'a>(
             any()
                 .filter(|c: &char| c.is_ascii_digit())
                 .repeated()
-                .exactly(2)
+                .at_least(1)
+                .at_most(2)
                 .collect::<String>()
                 .from_str::<u32>()
                 .unwrapped(),
