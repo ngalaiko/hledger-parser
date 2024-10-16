@@ -3,3 +3,4 @@
 * parse auto-postings
 * write documentation
 * publish the crate
+* parse all remaining intervals
