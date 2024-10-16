@@ -5,29 +5,22 @@ mod include;
 mod payee;
 mod price;
 mod tag;
-pub mod transaction;
+mod transaction;
 mod year;
 
 use chumsky::prelude::*;
 
-use crate::{
-    component::{
-        comment::{block, inline, line},
-        whitespace::whitespace,
-    },
-    state::State,
-};
-
-use self::{
-    account::{account, Account},
-    commodity::{commodity, Commodity},
-    decimal_mark::{decimal_mark, DecimalMark},
-    include::{include, Include},
-    payee::{payee, Payee},
-    price::{price, Price},
-    tag::{tag, Tag},
-    year::{year, Year},
-};
+use crate::component::comment::{block, inline, line};
+use crate::component::whitespace::whitespace;
+use crate::directive::account::{account, Account};
+use crate::directive::commodity::{commodity, Commodity};
+use crate::directive::decimal_mark::{decimal_mark, DecimalMark};
+use crate::directive::include::{include, Include};
+use crate::directive::payee::{payee, Payee};
+use crate::directive::price::{price, Price};
+use crate::directive::tag::{tag, Tag};
+use crate::directive::year::{year, Year};
+use crate::state::State;
 
 #[derive(Clone, Debug)]
 pub enum Directive {

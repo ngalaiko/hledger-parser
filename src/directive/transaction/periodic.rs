@@ -22,7 +22,9 @@ pub fn transaction<'a>(
 ) -> impl Parser<'a, &'a str, Transaction, extra::Full<Rich<'a, char>, State, ()>> {
     let header = just("~")
         .ignore_then(whitespace().repeated())
-        .ignore_then(period().then_ignore(whitespace().repeated()).then(header()));
+        .ignore_then(period())
+        .then_ignore(whitespace().repeated())
+        .then(header());
 
     header
         .then_ignore(text::newline())
