@@ -26,11 +26,17 @@ pub enum Interval {
 // every MM/DD [of year] (month number and day of month number)
 // every MONTHNAME DDth [of year] (full or three-letter english month name, case insensitive, and day of month number)
 // every DDth MONTHNAME [of year] (equivalent to the above)
-pub fn interval<'a>() -> impl Parser<'a, &'a str, Interval, extra::Full<Rich<'a, char>, State, ()>> {
+pub fn interval<'a>() -> impl Parser<'a, &'a str, Interval, extra::Full<Rich<'a, char>, State, ()>>
+{
     let word = choice([
+        just("daily").to(Interval::NthDay(1)),
+        just("weekly").to(Interval::NthWeek(1)),
         just("biweekly").to(Interval::NthWeek(2)),
         just("fortnightly").to(Interval::NthWeek(2)),
+        just("monthly").to(Interval::NthMonth(1)),
         just("bimonthly").to(Interval::NthMonth(2)),
+        just("quarterly").to(Interval::NthQuarter(1)),
+        just("yearly").to(Interval::NthQuarter(1)),
     ]);
 
     word.or(every()).or(day_of_week())
@@ -278,7 +284,10 @@ mod tests {
 
     #[test]
     fn every_weekday() {
-        let result = interval().then_ignore(end()).parse("every tue").into_result();
+        let result = interval()
+            .then_ignore(end())
+            .parse("every tue")
+            .into_result();
         assert_eq!(result, Ok(Interval::Weekday(chrono::Weekday::Tue)));
     }
 }

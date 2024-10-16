@@ -8,7 +8,7 @@ use chrono::Datelike;
 use chumsky::prelude::*;
 
 use crate::component::date::smart::date;
-use crate::component::period::interval::Interval;
+use crate::component::period::interval::{interval, Interval};
 use crate::component::whitespace::whitespace;
 use crate::state::State;
 
@@ -29,11 +29,22 @@ pub fn period<'a>() -> impl Parser<'a, &'a str, Period, extra::Full<Rich<'a, cha
         .or(year_month())
         .or(year());
 
-    begin_end.map(|(begin, end)| Period {
-        interval: None,
-        begin,
-        end,
-    })
+    interval()
+        .then_ignore(
+            whitespace()
+                .repeated()
+                .at_least(1)
+                .ignore_then(regex("(?i)in"))
+                .ignore_then(whitespace().repeated().at_least(1))
+                .or(whitespace().repeated().at_least(1)),
+        )
+        .or_not()
+        .then(begin_end)
+        .map(|(interval, (begin, end))| Period {
+            interval,
+            begin,
+            end,
+        })
 }
 
 // returns today's date
@@ -372,6 +383,38 @@ mod tests {
                 interval: None,
                 begin: chrono::NaiveDate::from_ymd_opt(2009, 7, 1),
                 end: chrono::NaiveDate::from_ymd_opt(2009, 10, 1),
+            })
+        );
+    }
+
+    #[test]
+    fn with_in_interval() {
+        let result = period()
+            .then_ignore(end())
+            .parse("every 2 weeks in 2008")
+            .into_result();
+        assert_eq!(
+            result,
+            Ok(Period {
+                interval: Some(Interval::NthWeek(2)),
+                begin: chrono::NaiveDate::from_ymd_opt(2008, 1, 1),
+                end: chrono::NaiveDate::from_ymd_opt(2009, 1, 1),
+            })
+        );
+    }
+
+    #[test]
+    fn with_interval() {
+        let result = period()
+            .then_ignore(end())
+            .parse("weekly from 2009/1/1 to 2009/4/1")
+            .into_result();
+        assert_eq!(
+            result,
+            Ok(Period {
+                interval: Some(Interval::NthWeek(1)),
+                begin: chrono::NaiveDate::from_ymd_opt(2009, 1, 1),
+                end: chrono::NaiveDate::from_ymd_opt(2009, 4, 1),
             })
         );
     }
