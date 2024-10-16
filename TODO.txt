@@ -1,5 +1,4 @@
-* parse periodic transactions
 * parse auto-postings
+* parse all remaining intervals
 * write documentation
 * publish the crate
-* parse all remaining intervals

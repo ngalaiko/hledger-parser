@@ -5,7 +5,7 @@ mod include;
 mod payee;
 mod price;
 mod tag;
-mod transaction;
+pub mod transaction;
 mod year;
 
 use chumsky::prelude::*;
@@ -26,7 +26,6 @@ use self::{
     payee::{payee, Payee},
     price::{price, Price},
     tag::{tag, Tag},
-    transaction::{transaction, Transaction},
     year::{year, Year},
 };
 
@@ -39,7 +38,8 @@ pub enum Directive {
     Payee(Payee),
     Price(Price),
     Tag(Tag),
-    Transaction(Transaction),
+    Transaction(transaction::Simple),
+    PeriodicTransaction(transaction::Periodic),
     Year(Year),
 }
 
@@ -53,7 +53,8 @@ pub fn directive<'a>() -> impl Parser<'a, &'a str, Directive, extra::Full<Rich<'
         .or(payee().map(Directive::Payee))
         .or(price().map(Directive::Price))
         .or(tag().map(Directive::Tag))
-        .or(transaction().map(Directive::Transaction))
+        .or(transaction::simple().map(Directive::Transaction))
+        .or(transaction::periodic().map(Directive::PeriodicTransaction))
         .or(year().map(Directive::Year))
 }
 

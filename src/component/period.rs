@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-mod interval;
+pub mod interval;
 
 use std::time::SystemTime;
 
