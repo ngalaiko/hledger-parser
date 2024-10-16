@@ -6,10 +6,10 @@ edition = "2021"
 [dependencies]
 ariadne = { version = "0.4.1", optional = true}
 chrono = "0.4.38"
-chumsky = { version = "1.0.0-alpha.7", features = [ "regex" ] }
+chumsky = { version = "1.0.0-alpha.7" }
 
 [features]
-example-cheatsheet = ["ariadne"]
+example-cheatsheet = [ "ariadne" ]
 
 [[example]]
 name = "cheatsheet"

@@ -34,7 +34,7 @@ pub fn period<'a>() -> impl Parser<'a, &'a str, Period, extra::Full<Rich<'a, cha
             whitespace()
                 .repeated()
                 .at_least(1)
-                .ignore_then(regex("(?i)in"))
+                .ignore_then(just("in"))
                 .ignore_then(whitespace().repeated().at_least(1))
                 .or(whitespace().repeated().at_least(1)),
         )
