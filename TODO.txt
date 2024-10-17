@@ -1,3 +1,4 @@
+* virtual postings
 * parse auto-postings
 * parse all remaining intervals
 * case insensitive keywords

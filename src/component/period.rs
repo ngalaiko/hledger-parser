@@ -20,16 +20,7 @@ pub struct Period {
 }
 
 pub fn period<'a>() -> impl Parser<'a, &'a str, Period, extra::Full<Rich<'a, char>, State, ()>> {
-    let begin_end = quarter()
-        .or(year_quarter())
-        .or(begin_end())
-        .or(just_end())
-        .or(begin())
-        .or(year_month_day())
-        .or(year_month())
-        .or(year());
-
-    interval()
+    let interval_begin_end = interval()
         .then_ignore(
             whitespace()
                 .repeated()
@@ -38,13 +29,43 @@ pub fn period<'a>() -> impl Parser<'a, &'a str, Period, extra::Full<Rich<'a, cha
                 .ignore_then(whitespace().repeated().at_least(1))
                 .or(whitespace().repeated().at_least(1)),
         )
-        .or_not()
-        .then(begin_end)
+        .then(
+            quarter()
+                .or(year_quarter())
+                .or(begin_end())
+                .or(just_end())
+                .or(begin())
+                .or(year_month_day())
+                .or(year_month())
+                .or(year()),
+        )
         .map(|(interval, (begin, end))| Period {
-            interval,
+            interval: Some(interval),
             begin,
             end,
-        })
+        });
+
+    let interval = interval().map(|interval| Period {
+        interval: Some(interval),
+        begin: None,
+        end: None,
+    });
+
+    let begin_end = quarter()
+        .or(year_quarter())
+        .or(begin_end())
+        .or(just_end())
+        .or(begin())
+        .or(year_month_day())
+        .or(year_month())
+        .or(year())
+        .map(|(begin, end)| Period {
+            interval: None,
+            begin,
+            end,
+        });
+
+    interval_begin_end.or(interval).or(begin_end)
 }
 
 // returns today's date
@@ -415,6 +436,19 @@ mod tests {
                 interval: Some(Interval::NthWeek(1)),
                 begin: chrono::NaiveDate::from_ymd_opt(2009, 1, 1),
                 end: chrono::NaiveDate::from_ymd_opt(2009, 4, 1),
+            })
+        );
+    }
+
+    #[test]
+    fn just_interval() {
+        let result = period().then_ignore(end()).parse("monthly").into_result();
+        assert_eq!(
+            result,
+            Ok(Period {
+                interval: Some(Interval::NthMonth(1)),
+                begin: None,
+                end: None,
             })
         );
     }

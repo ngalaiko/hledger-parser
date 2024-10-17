@@ -23,7 +23,7 @@ pub fn transaction<'a>(
     let header = just("~")
         .ignore_then(whitespace().repeated())
         .ignore_then(period())
-        .then_ignore(whitespace().repeated())
+        .then_ignore(whitespace().repeated().at_least(2))
         .then(header());
 
     header
@@ -98,6 +98,62 @@ mod tests {
                             String::from("checking"),
                         ]),
                         amount: None,
+                        price: None,
+                        assertion: None,
+                    }
+                ],
+            })
+        );
+    }
+
+    #[test]
+    fn cheatsheet() {
+        let result = transaction()
+            .then_ignore(end())
+            .parse(
+                "~ monthly  set budget goals  ; <- Note, 2+ spaces before the description.
+    (expenses:rent)      $1000
+    (expenses:food)       $500",
+            )
+            .into_result();
+        assert_eq!(
+            result,
+            Ok(Transaction {
+                period: Period {
+                    interval: Some(Interval::NthMonth(1)),
+                    begin: None,
+                    end: None,
+                },
+                code: None,
+                status: None,
+                payee: String::from("set budget goals"),
+                description: None,
+                postings: vec![
+                    Posting {
+                        status: None,
+                        account_name: AccountName::from_strs(&[
+                            String::from("(expenses"),
+                            String::from("rent)"),
+                        ]),
+                        amount: Some(Amount {
+                            is_negative: false,
+                            quantity: Quantity::from_u64(1000),
+                            commodity: Commodity::from_str("$"),
+                        }),
+                        price: None,
+                        assertion: None,
+                    },
+                    Posting {
+                        status: None,
+                        account_name: AccountName::from_strs(&[
+                            String::from("(expenses"),
+                            String::from("food)"),
+                        ]),
+                        amount: Some(Amount {
+                            is_negative: false,
+                            quantity: Quantity::from_u64(500),
+                            commodity: Commodity::from_str("$"),
+                        }),
                         price: None,
                         assertion: None,
                     }
