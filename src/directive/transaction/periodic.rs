@@ -1,5 +1,6 @@
 use chumsky::prelude::*;
 
+use crate::component::comment::inline;
 use crate::component::period::{period, Period};
 use crate::component::whitespace::whitespace;
 use crate::directive::transaction::posting::{posting, Posting};
@@ -28,6 +29,13 @@ pub fn transaction<'a>(
 
     header
         .then_ignore(text::newline())
+        .then_ignore(
+            text::whitespace()
+                .at_least(1)
+                .then(inline())
+                .then_ignore(text::newline())
+                .or_not(),
+        )
         .then(
             posting()
                 .separated_by(text::newline())
