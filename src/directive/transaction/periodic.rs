@@ -89,6 +89,7 @@ mod tests {
                         }),
                         price: None,
                         assertion: None,
+                        is_virtual: false,
                     },
                     Posting {
                         status: None,
@@ -100,6 +101,7 @@ mod tests {
                         amount: None,
                         price: None,
                         assertion: None,
+                        is_virtual: false,
                     }
                 ],
             })
@@ -132,8 +134,8 @@ mod tests {
                     Posting {
                         status: None,
                         account_name: AccountName::from_strs(&[
-                            String::from("(expenses"),
-                            String::from("rent)"),
+                            String::from("expenses"),
+                            String::from("rent"),
                         ]),
                         amount: Some(Amount {
                             is_negative: false,
@@ -142,12 +144,13 @@ mod tests {
                         }),
                         price: None,
                         assertion: None,
+                        is_virtual: true,
                     },
                     Posting {
                         status: None,
                         account_name: AccountName::from_strs(&[
-                            String::from("(expenses"),
-                            String::from("food)"),
+                            String::from("expenses"),
+                            String::from("food"),
                         ]),
                         amount: Some(Amount {
                             is_negative: false,
@@ -156,6 +159,7 @@ mod tests {
                         }),
                         price: None,
                         assertion: None,
+                        is_virtual: true,
                     }
                 ],
             })

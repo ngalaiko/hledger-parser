@@ -16,6 +16,7 @@ use self::assertion::{assertion, Assertion};
 pub struct Posting {
     pub status: Option<Status>,
     pub account_name: AccountName,
+    pub is_virtual: bool,
     pub amount: Option<Amount>,
     pub price: Option<Price>,
     pub assertion: Option<Assertion>,
@@ -26,19 +27,24 @@ pub fn posting<'a>() -> impl Parser<'a, &'a str, Posting, extra::Full<Rich<'a, c
     let posting_amount = whitespace().repeated().at_least(2).ignore_then(amount());
     let posting_price = whitespace().repeated().ignore_then(price());
     let posting_assertion = whitespace().repeated().ignore_then(assertion());
+    let account_name = account_name()
+        .delimited_by(just('('), just(')'))
+        .map(|name| (name, true))
+        .or(account_name().map(|name| (name, false)));
     whitespace()
         .repeated()
         .at_least(1)
         .ignore_then(status().then_ignore(whitespace()).or_not())
-        .then(account_name())
+        .then(account_name)
         .then(posting_amount.or_not())
         .then(posting_price.or_not())
         .then(posting_assertion.or_not())
         .then_ignore(end_of_line())
         .map(
-            |((((status, account_name), amount), price), assertion)| Posting {
+            |((((status, (account_name, is_virtual)), amount), price), assertion)| Posting {
                 status,
                 account_name,
+                is_virtual,
                 amount,
                 price,
                 assertion,
@@ -74,6 +80,7 @@ mod tests {
                 }),
                 price: None,
                 assertion: None,
+                is_virtual: false,
             })
         );
     }
@@ -96,6 +103,7 @@ mod tests {
                 amount: None,
                 price: None,
                 assertion: None,
+                is_virtual: false,
             })
         );
     }
@@ -122,6 +130,7 @@ mod tests {
                 }),
                 price: None,
                 assertion: None,
+                is_virtual: false,
             })
         );
     }
@@ -147,6 +156,7 @@ mod tests {
                 amount: None,
                 price: None,
                 assertion: None,
+                is_virtual: false,
             })
         );
     }
@@ -169,6 +179,7 @@ mod tests {
                 amount: None,
                 price: None,
                 assertion: None,
+                is_virtual: false,
             })
         );
     }
@@ -207,6 +218,7 @@ mod tests {
                     is_subaccount_inclusive: false,
                     is_strict: false,
                 }),
+                is_virtual: false,
             })
         );
     }
@@ -241,6 +253,7 @@ mod tests {
                     is_subaccount_inclusive: false,
                     is_strict: true,
                 }),
+                is_virtual: false,
             })
         );
     }
@@ -271,6 +284,34 @@ mod tests {
                     commodity: Commodity::from_str("EUR"),
                 })),
                 assertion: None,
+                is_virtual: false,
+            })
+        );
+    }
+
+    #[test]
+    fn virtual_posting() {
+        let result = posting()
+            .then_ignore(end())
+            .parse(" (assets:bank:checking)  $1")
+            .into_result();
+        assert_eq!(
+            result,
+            Ok(Posting {
+                status: None,
+                account_name: AccountName::from_strs(&[
+                    String::from("assets"),
+                    String::from("bank"),
+                    String::from("checking"),
+                ]),
+                amount: Some(Amount {
+                    is_negative: false,
+                    quantity: Quantity::from_u64(1),
+                    commodity: Commodity::from_str("$"),
+                }),
+                price: None,
+                assertion: None,
+                is_virtual: true,
             })
         );
     }
@@ -293,6 +334,7 @@ mod tests {
                 amount: None,
                 price: None,
                 assertion: None,
+                is_virtual: false,
             })
         );
     }

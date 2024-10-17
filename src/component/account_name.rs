@@ -16,6 +16,7 @@ pub fn account_name<'a>(
     let part = any()
         .and_is(text::newline().not())
         .and_is(just(":").not()) // forbidden, because it separates account parts
+        .and_is(just(")").not()) // forbidden, because it indicates virtual account
         .and_is(just("  ").not()) // forbidden, because it separates inline account comment
         .repeated()
         .at_least(1)

@@ -83,6 +83,7 @@ mod tests {
                         }),
                         price: None,
                         assertion: None,
+                        is_virtual: false,
                     },
                     Posting {
                         status: None,
@@ -93,6 +94,7 @@ mod tests {
                         amount: None,
                         price: None,
                         assertion: None,
+                        is_virtual: false,
                     }
                 ],
             })
@@ -132,6 +134,7 @@ mod tests {
                         }),
                         price: None,
                         assertion: None,
+                        is_virtual: false,
                     },
                     Posting {
                         status: None,
@@ -142,6 +145,7 @@ mod tests {
                         amount: None,
                         price: None,
                         assertion: None,
+                        is_virtual: false,
                     }
                 ],
             })
