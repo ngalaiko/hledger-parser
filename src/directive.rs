@@ -1,4 +1,5 @@
 mod account;
+mod auto_posting;
 mod commodity;
 mod decimal_mark;
 mod include;
@@ -13,6 +14,7 @@ use chumsky::prelude::*;
 use crate::component::comment::{block, inline, line};
 use crate::component::whitespace::whitespace;
 use crate::directive::account::{account, Account};
+use crate::directive::auto_posting::{auto_posting, AutoPosting};
 use crate::directive::commodity::{commodity, Commodity};
 use crate::directive::decimal_mark::{decimal_mark, DecimalMark};
 use crate::directive::include::{include, Include};
@@ -25,6 +27,7 @@ use crate::state::State;
 #[derive(Clone, Debug)]
 pub enum Directive {
     Account(Account),
+    AutoPosting(AutoPosting),
     Commodity(Commodity),
     DecimalMark(DecimalMark),
     Include(Include),
@@ -40,6 +43,7 @@ pub fn directive<'a>() -> impl Parser<'a, &'a str, Directive, extra::Full<Rich<'
 {
     account()
         .map(Directive::Account)
+        .or(auto_posting().map(Directive::AutoPosting))
         .or(commodity().map(Directive::Commodity))
         .or(decimal_mark().map(Directive::DecimalMark))
         .or(include().map(Directive::Include))
