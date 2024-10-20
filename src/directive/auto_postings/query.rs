@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use chumsky::prelude::*;
 
 use crate::{component::whitespace::whitespace, state::State};
@@ -38,14 +36,13 @@ fn term<'a>() -> impl Parser<'a, &'a str, Term, extra::Full<Rich<'a, char>, Stat
         .at_least(1)
         .collect::<String>()
         .delimited_by(just("'"), just("'"));
-    let r#type = any()
-        .and_is(text::newline().not())
-        .and_is(whitespace().not())
-        .and_is(just(":").not())
-        .repeated()
-        .at_least(1)
-        .collect::<String>()
-        .then_ignore(just(":"));
+    let r#type = just("date")
+        .or(just("status"))
+        .or(just("desc"))
+        .or(just("cur"))
+        .or(just("amt"))
+        .then_ignore(just(":"))
+        .map(ToString::to_string);
 
     just("not:")
         .or_not()
@@ -74,6 +71,24 @@ mod tests {
                 terms: vec![Term {
                     is_not: false,
                     value: String::from("personal care"),
+                    r#type: None,
+                }]
+            })
+        );
+    }
+
+    #[test]
+    fn single_account_term() {
+        let result = query()
+            .then_ignore(end())
+            .parse("expenses:dining")
+            .into_result();
+        assert_eq!(
+            result,
+            Ok(Query {
+                terms: vec![Term {
+                    is_not: false,
+                    value: String::from("expenses:dining"),
                     r#type: None,
                 }]
             })

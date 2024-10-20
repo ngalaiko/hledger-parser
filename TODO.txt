@@ -1,5 +1,6 @@
-* parse auto-postings
+* fully parse cheatsheet
 * parse all remaining intervals
 * case insensitive keywords
+* export public api
 * write documentation
 * publish the crate

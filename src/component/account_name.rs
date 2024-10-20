@@ -3,7 +3,7 @@ use chumsky::prelude::*;
 use crate::state::State;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct AccountName(Vec<String>);
+pub struct AccountName(pub Vec<String>);
 
 impl AccountName {
     pub fn from_strs(parts: &[String]) -> Self {
