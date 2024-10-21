@@ -210,6 +210,7 @@ mod tests {
                     commodity: Commodity::from_str("USD"),
                 })),
                 assertion: Some(Assertion {
+                    price: None,
                     amount: Amount {
                         is_negative: false,
                         quantity: Quantity::from_u64(1),
@@ -245,6 +246,7 @@ mod tests {
                 }),
                 price: None,
                 assertion: Some(Assertion {
+                    price: None,
                     amount: Amount {
                         is_negative: false,
                         quantity: Quantity::from_u64(1),
