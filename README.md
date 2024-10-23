@@ -6,7 +6,9 @@ parser for hledger journals powered by [chumsky][]
 
 ## current state
 
-It's _almost_ able to parse [cheatsheet][].
+It's able to parse [cheatsheet][]. 
+
+I will release v1 once it's able to parse my persoal ledger.
 
 [chumsky]: https://github.com/zesterer/chumsky
 [cheatsheet]: ./examples/fixture/cheatsheet.journal
