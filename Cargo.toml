@@ -4,12 +4,18 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ariadne = { version = "0.4.1", optional = true}
+ariadne = { version = "0.4.1", optional = true }
 chrono = "0.4.38"
 chumsky = { version = "1.0.0-alpha.7" }
+clap = { version = "4.4", features = ["derive", "env"], optional = true }
 
 [features]
 example-cheatsheet = [ "ariadne" ]
+cli = [ "clap", "ariadne" ]
+
+[[bin]]
+name = "hledger-parser"
+required-features = [ "cli" ]
 
 [[example]]
 name = "cheatsheet"
