@@ -25,24 +25,31 @@ pub fn transaction<'a>(
         .ignore_then(whitespace().repeated())
         .ignore_then(period())
         .then_ignore(whitespace().repeated().at_least(2))
-        .then(header());
+        .then(header().or_not());
 
     header
-        .then_ignore(text::newline())
         .then_ignore(
-            text::whitespace()
-                .at_least(1)
-                .then(inline())
-                .then_ignore(text::newline())
+            text::newline()
+                .then(
+                    text::whitespace()
+                        .at_least(1)
+                        .then(inline())
+                        .then_ignore(text::newline()),
+                )
                 .or_not(),
         )
-        .then(posting().separated_by(text::newline()).collect::<Vec<_>>())
+        .then(
+            posting()
+                .separated_by(text::newline())
+                .allow_leading()
+                .collect::<Vec<_>>(),
+        )
         .map(|((period, header), postings)| Transaction {
             period,
-            status: header.status,
-            code: header.code,
-            payee: header.payee,
-            description: header.description,
+            status: header.as_ref().and_then(|h| h.status.clone()),
+            code: header.as_ref().and_then(|h| h.code.clone()),
+            payee: header.as_ref().map_or(String::new(), |h| h.payee.clone()),
+            description: header.as_ref().and_then(|h| h.description.clone()),
             postings,
         })
 }

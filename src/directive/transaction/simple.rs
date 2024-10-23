@@ -3,11 +3,10 @@ use chumsky::prelude::*;
 use crate::component::comment::inline;
 use crate::component::date::simple::date;
 use crate::component::whitespace::whitespace;
+use crate::directive::transaction::header::header;
 use crate::directive::transaction::posting::{posting, Posting};
 use crate::directive::transaction::status::Status;
 use crate::state::State;
-
-use super::header::header;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Transaction {
@@ -21,24 +20,33 @@ pub struct Transaction {
 
 pub fn transaction<'a>(
 ) -> impl Parser<'a, &'a str, Transaction, extra::Full<Rich<'a, char>, State, ()>> {
-    let header = date().then_ignore(whitespace().repeated()).then(header());
+    let header = date()
+        .then_ignore(whitespace().repeated())
+        .then(header().or_not());
 
     header
-        .then_ignore(text::newline())
         .then_ignore(
-            text::whitespace()
-                .at_least(1)
-                .then(inline())
-                .then_ignore(text::newline())
+            text::newline()
+                .then(
+                    text::whitespace()
+                        .at_least(1)
+                        .then(inline())
+                        .then_ignore(text::newline()),
+                )
                 .or_not(),
         )
-        .then(posting().separated_by(text::newline()).collect::<Vec<_>>())
+        .then(
+            posting()
+                .separated_by(text::newline())
+                .allow_leading()
+                .collect::<Vec<_>>(),
+        )
         .map(|((date, header), postings)| Transaction {
             date,
-            status: header.status,
-            code: header.code,
-            payee: header.payee,
-            description: header.description,
+            status: header.as_ref().and_then(|h| h.status.clone()),
+            code: header.as_ref().and_then(|h| h.code.clone()),
+            payee: header.as_ref().map_or(String::new(), |h| h.payee.clone()),
+            description: header.as_ref().and_then(|h| h.description.clone()),
             postings,
         })
 }
@@ -151,6 +159,25 @@ mod tests {
                         is_virtual: false,
                     }
                 ],
+            })
+        );
+    }
+
+    #[test]
+    fn just_date() {
+        let result = transaction()
+            .then_ignore(end())
+            .parse("2008/1/1")
+            .into_result();
+        assert_eq!(
+            result,
+            Ok(Transaction {
+                date: chrono::NaiveDate::from_ymd_opt(2008, 1, 1).unwrap(),
+                code: None,
+                status: None,
+                payee: String::new(),
+                description: None,
+                postings: vec![],
             })
         );
     }

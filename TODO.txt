@@ -1,6 +1,6 @@
-* fully parse cheatsheet
+* write documentation
+* publish the crate
+* in end_of_line handle newline, then commet. i.e. between transaction header and postings
 * parse all remaining intervals
 * case insensitive keywords
 * export public api
-* write documentation
-* publish the crate
