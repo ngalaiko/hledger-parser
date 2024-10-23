@@ -36,12 +36,7 @@ pub fn transaction<'a>(
                 .then_ignore(text::newline())
                 .or_not(),
         )
-        .then(
-            posting()
-                .separated_by(text::newline())
-                .at_least(2)
-                .collect::<Vec<_>>(),
-        )
+        .then(posting().separated_by(text::newline()).collect::<Vec<_>>())
         .map(|((period, header), postings)| Transaction {
             period,
             status: header.status,
