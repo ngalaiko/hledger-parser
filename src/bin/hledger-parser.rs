@@ -1,4 +1,4 @@
-use ariadne::{Color, Label, Report, ReportKind, Source};
+use ariadne::{Color, Config, IndexType, Label, Report, ReportKind, Source};
 use clap::Parser;
 
 #[derive(Parser)]
@@ -28,6 +28,7 @@ pub fn main() {
             for err in errs {
                 Report::build(ReportKind::Error, (), err.span().start)
                     .with_code(3)
+                    .with_config(Config::default().with_index_type(IndexType::Byte))
                     .with_message(err.to_string())
                     .with_label(
                         Label::new(err.span().into_range())
