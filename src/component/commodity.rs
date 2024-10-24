@@ -14,15 +14,12 @@ impl Commodity {
 pub fn commodity<'a>() -> impl Parser<'a, &'a str, Commodity, extra::Full<Rich<'a, char>, State, ()>>
 {
     let letter = any().filter(|c: &char| c.is_alphabetic());
-    let digit = any().filter(|c: &char| c.is_ascii_digit());
-    let space = one_of(" \t\u{a0}");
     let symbol = one_of("$¢€£ƒ₣₧₱₨₹₽₺¥");
 
     let symbol = symbol.repeated().exactly(1).collect().map(Commodity);
     let simple = letter.repeated().collect().map(Commodity);
-    let quoted = letter
-        .or(digit)
-        .or(space)
+    let quoted = any()
+        .and_is(just("\"").not())
         .repeated()
         .collect::<String>()
         .padded_by(just("\""))
@@ -54,6 +51,20 @@ mod tests {
             .parse("\"green apples\"")
             .into_result();
         assert_eq!(result, Ok(Commodity(String::from("green apples"))));
+    }
+
+    #[test]
+    pub fn complex_quoted() {
+        let result = commodity()
+            .then_ignore(end())
+            .parse("\"Hello 1 - I am a very complex commodity 😎\"")
+            .into_result();
+        assert_eq!(
+            result,
+            Ok(Commodity(String::from(
+                "Hello 1 - I am a very complex commodity 😎"
+            )))
+        );
     }
 
     #[test]
